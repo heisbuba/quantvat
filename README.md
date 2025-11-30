@@ -14,3 +14,14 @@ Lightweight and simple toolkit that helps you track high-volume crypto tokens in
 - Cleanup system that removes source files after analysis
 - Lightweight and fast
 
+# Installation Guide
+
+###Toolkit Setup
+
+Before running the toolkit, you need to install these four libraries in your python or Pydroid3 environment:
+
+
+pip install requests pandas beautifulsoup4 pypdf
+
+
+
