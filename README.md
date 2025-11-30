@@ -59,3 +59,20 @@ After you run the toolkit, it will take care of cleaning your download folder an
 
 # Strategy Behind the Toolkit
 
+
+# Contribute
+
+This project is released under the MIT License, which means anyone is free to use it, modify it, and build on it.
+If you’d like to contribute—whether it’s improving the code, fixing a bug, adding new analysis features, or suggesting better data sources—you’re welcome to take part.
+
+You can open an issue, submit a pull request, or share ideas for future updates.
+
+Contributions of any size are appreciated, and all submitted work will remain under the same MIT License to keep the project open and accessible for everyone.
+
+# Disclaimer
+
+This toolkit is for research and educational purposes only. It does not, in any way, provide financial advice, trading signals, or investment recommendations. Crypto markets are volatile—always do your own research and make your own decisions.
+
+
+
+
