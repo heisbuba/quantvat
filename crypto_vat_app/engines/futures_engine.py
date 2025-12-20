@@ -402,6 +402,22 @@ def convert_html_to_pdf(html: str, output_dir: Path, user_id: str) -> Optional[P
         print(f"   Error: {e}")
     return None
 
+def cleanup_after_analysis(spot_file: Optional[Path], futures_file: Optional[Path]) -> int:
+    files_cleaned = 0
+    if spot_file and spot_file.exists():
+        try:
+            spot_file.unlink()
+            print(f"   🗑️  Cleaned up spot file: {spot_file.name}")
+            files_cleaned += 1
+        except Exception: pass
+    if futures_file and futures_file.exists():
+        try:
+            futures_file.unlink()
+            print(f"   🗑️  Cleaned up futures PDF: {futures_file.name}")
+            files_cleaned += 1
+        except Exception: pass
+    return files_cleaned
+
 def run_futures_analysis(user_id: str):
     # Try to find the user's specific spot file in Uploads
     spot_file = None
@@ -431,8 +447,5 @@ def run_futures_analysis(user_id: str):
         pdf_path = convert_html_to_pdf(html, config.UPLOAD_FOLDER, user_id)
         if pdf_path:
             print("   ✅ Analysis Complete.")
-            # Cleanup temp files
-            try:
-                uploaded_futures.unlink()
-                # Optionally keep spot file or delete
-            except: pass
+            print("   🧹 Cleaning up source files after analysis...")
+            cleanup_after_analysis(spot_file, uploaded_futures)
