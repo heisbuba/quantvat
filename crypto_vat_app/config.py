@@ -22,7 +22,7 @@ LOCK = threading.Lock()
 # ==============================
 # API KEYS & CONFIG
 # ==============================
-# These will be loaded from crypto_vat_config.json
+# Defaults
 HTML2PDF_API_KEY = 'CONFIG_REQUIRED_HTML2PDF'
 CMC_API_KEY = 'CONFIG_REQUIRED_CMC'
 LIVECOINWATCH_API_KEY = 'CONFIG_REQUIRED_LCW'
