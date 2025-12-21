@@ -69,11 +69,30 @@ def reports():
     uid = session['user_id']
     _, bucket = config.FirebaseHelper.initialize()
     files = []
+    
+    # 1. Try Cloud Files
     if bucket:
-        blobs = bucket.list_blobs(prefix=f"reports/{uid}/")
-        files = [{"name": b.name.split('/')[-1], "url": b.public_url} for b in blobs]
-    return render_template_string(REPORT_LIST_TEMPLATE, files=files, BASE_URL="")
+        try:
+            blobs = bucket.list_blobs(prefix=f"reports/{uid}/")
+            files = [{"name": b.name.split('/')[-1], "url": b.public_url} for b in blobs]
+        except: pass
+    
+    # 2. [CRITICAL] Add Local Files (The Backup Plan)
+    # This ensures you see reports even without Cloud Storage
+    local_reports = config.UPLOAD_FOLDER.glob(f"*{uid}*analysis*.pdf")
+    for f in local_reports:
+        # Avoid duplicates if cloud is active
+        if not any(d['name'] == f.name for d in files):
+            # Create a local link route
+            files.append({"name": f.name, "url": f"/download-local/{f.name}"})
+            
+    return render_template_string(REPORT_LIST_TEMPLATE, files=files)
 
+# 3. Add this NEW Route to download local files
+@core_bp.route("/download-local/<path:filename>")
+@login_required
+def download_local(filename):
+    return send_from_directory(config.UPLOAD_FOLDER, filename)
 @core_bp.route("/help")
 def help_page(): return render_template_string(HELP_TEMPLATE)
 
