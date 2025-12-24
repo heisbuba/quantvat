@@ -1,1 +1,211 @@
-# goes here
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto VAT v4.0 - Cloud Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+/* --- CSS VARIABLES (CUSTOM PROPERTIES) --- */
+
+:root {
+    --bg-dark: #0b0e11;
+    --bg-card: #151a1e;
+    --text-main: #eaecef;
+    --text-dim: #848e9c;
+    --accent-green: #0ecb81;
+    --accent-blue: #3b82f6;
+    --accent-orange: #f59e0b;
+    --accent-red: #f6465d;
+    --accent-purple: #9333ea;
+    --border: #2b3139;
+    --input-bg: #1e252a;
+}
+
+/* --- BASE & LAYOUT --- */
+
+body {
+    margin: 0;
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+/* "Wide" Modifier - for larger layouts */
+.container.wide {
+    max-width: 1000px;
+}
+
+/* --- CARD COMPONENT --- */
+
+.card {
+    background: var(--bg-card);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+/* --- TYPOGRAPHY --- */
+
+h1 {
+    color: var(--accent-green);
+    text-align: center;
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+}
+
+h2 {
+    color: var(--accent-blue);
+    font-size: 1.1rem;
+    margin-top: 20px;
+}
+
+/* --- FORM ELEMENTS --- */
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: #fff;
+    border-radius: 8px;
+    font-family: monospace;
+    margin-top: 5px;
+    box-sizing: border-box;
+}
+
+/* --- BUTTONS --- */
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    transition: transform 0.2s ease; /* For consistent hover animation */
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Button Color Variants */
+.btn-green {
+    background: var(--accent-green);
+    color: #000;
+}
+
+.btn-green:hover {
+    box-shadow: 0 4px 12px rgba(14, 203, 129, 0.3);
+    opacity: 0.9;
+}
+
+.btn-blue {
+    background: var(--bg-card);
+    width: 90%;
+    border: 1px solid var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+.btn-blue:hover {
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.btn-links {
+    background: var(--bg-card);
+    width: 80%;
+    border: 1px solid var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+.btn-links:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.btn-red {
+    background: rgba(246, 70, 93, 0.1);
+    width: 95%;
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+}
+
+.btn-red:hover {
+    background: rgba(246, 70, 93, 0.2);
+    box-shadow: 0 4px 12px rgba(246, 70, 93, 0.2);
+}
+
+/* --- LINK STYLES --- */
+
+.link {
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-size: 0.85rem;
+    float: right;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-dim);
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: var(--accent-blue);
+}
+
+/* --- GRID LAYOUT --- */
+
+.grid-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* --- MESSAGE STATES --- */
+
+.error-message {
+    color: var(--accent-red);
+    padding: 10px;
+    background: rgba(246, 70, 93, 0.1);
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.success-message {
+    color: var(--accent-green);
+    padding: 10px;
+    background: rgba(14, 203, 129, 0.1);
+    border-radius: 8px;
+    margin: 10px 0;
+}
+        </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>
