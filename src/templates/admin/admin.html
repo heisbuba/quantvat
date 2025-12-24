@@ -1,1 +1,203 @@
-# goes here
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+   /* --- ADMIN HEADER --- */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.admin-title {
+    color: var(--accent-green);
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+/* --- STATISTICS GRID --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+}
+
+.stat-label {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* --- TABLE CONTAINER --- */
+.table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-header {
+    padding: 15px 20px;
+    background: rgba(59, 130, 246, 0.05);
+    border-bottom: 1px solid var(--border);
+    color: var(--accent-blue);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* --- TABLE STRUCTURE --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+th {
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: 0.85rem;
+}
+
+/* --- STATUS BADGES --- */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.status-active {
+    background: rgba(14, 203, 129, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(14, 203, 129, 0.2);
+}
+
+.status-idle {
+    background: rgba(132, 142, 156, 0.1);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+}
+
+/* --- PROGRESS BAR --- */
+.progress-track {
+    width: 80px;
+    height: 6px;
+    background: var(--input-bg);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent-blue);
+    transition: width 0.3s;
+}
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container wide">
+    <div class="admin-header">
+        <h1 class="admin-title">👮 Admin Panel</h1>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ user_count }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Lifetime Scans</div>
+            <div class="stat-value" style="color: var(--accent-green);">{{ active_tasks }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Report Views</div>
+            <div class="stat-value" style="color: var(--accent-blue);">{{ report_views }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">System Storage</div>
+            <div class="stat-value" style="color: var(--accent-purple);">{{ storage_usage }}<small style="font-size: 0.9rem;">MB</small></div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">⚡ LIVE ACTIVITY</div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Current Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for uid, data in progress.items() %}
+                    <tr>
+                        <td style="font-family: 'JetBrains Mono'; color: var(--accent-blue);">{{ uid[:8] }}</td>
+                        <td><span class="status-badge {{'status-active' if data.status == 'active' else 'status-idle'}}">{{ data.status }}</span></td>
+                        <td><div class="progress-track"><div class="progress-fill" style="width: {{ data.percent }}%"></div></div></td>
+                        <td style="color: var(--text-dim);">{{ data.text }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--text-dim);">No sessions found in memory</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center;">
+        <a href="{{ url_for('main.home') }}" class="btn btn-links" style="width: auto; padding: 10px 25px; display: inline-block; margin-bottom: 15px;">
+            ← BACK TO DASHBOARD
+        </a>
+        <p style="color: var(--text-dim); font-size: 0.75rem; letter-spacing: 0.5px;">SERVER TIMESTAMP: {{ server_time }}</p>
+    </div>
+</div>
+{% endblock %}
