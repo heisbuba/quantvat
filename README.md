@@ -1,3 +1,18 @@
+
+---
+title: Crypto Volume Analsis Toolkit v4.0
+emoji: 📈
+colorFrom: gray
+colorTo: gray
+sdk: docker
+pinned: true
+license: mit
+short_description: Perform crypto institutional-grade cross-market analysis
+thumbnail: >-
+  https://cdn-uploads.huggingface.co/production/uploads/6947519e94e1623904a5b3a4/SdHOG8_LhjpMm8-BBiUL7.jpeg
+---
+
+
 # **Crypto Volume Analysis Toolkit**
 
 Is a powerful web-based suite designed for crypto analysts and traders. It tracks high-volume tokens across the last 24 hours, performing cross-market analysis using integrated Spot and Futures data. Generate professional, data-driven PDF reports directly in your browser with zero setup required.
