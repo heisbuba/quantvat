@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<style>
+  /* Placeholder */
+ input::placeholder { 
+   color: #64748b; 
+   opacity: 1; 
+   font-style: italic; 
+ }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="{{ category }}-message">✅ {{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if success %}
+      <div class="success-message">✅ {{ success }}</div>
+    {% endif %}
+
+    <h1>⚙️ Setup Wizard</h1>
+    <p style="text-align:center; color:#848e9c; font-size:0.9rem;">
+        Crypto Volume Analysis Toolkit v4.0<br>Cloud Edition By @heisbuba
+    </p>
+    
+    <div class="card">
+        <p><strong>Welcome to Crypto VAT v4.0</strong> Configure your API keys to unlock the full potential of the toolkit.</p>
+        <p><small>Note: All values are encrypted and stored securely in your cloud account. You can update them anytime.</small></p>
+        <a href="https://github.com/heisbuba/crypto-volume-analysis-toolkit" class="link" target="_blank">GitHub Documentation ↗</a>
+    </div>
+
+    <form action="{{ url_for('main.save_config') }}" method="POST">
+        <div class="card">
+            <h2>1. API Keys Setup</h2>
+            
+            <label>CoinMarketCap Key <a href="https://pro.coinmarketcap.com/signup/" target="_blank" class="link">Get Key ↗</a></label>
+            <input type="text" name="cmc_key" value="{{ cmc }}" placeholder="Paste CMC Key here...">
+
+            <label style="margin-top:15px; display:block;">LiveCoinWatch Key <a href="https://www.livecoinwatch.com/tools/api" target="_blank" class="link">Get Key ↗</a></label>
+            <input type="text" name="lcw_key" value="{{ lcw }}" placeholder="Paste LCW Key here...">
+
+            <label style="margin-top:15px; display:block;">CoinRanking Key <a href="https://coinranking.com/api" target="_blank" class="link">Get Key ↗</a></label>
+            <input type="text" name="cr_key" value="{{ cr }}" placeholder="Paste CR Key here...">
+        </div>
+
+        <div class="card">
+            <h2>2. CoinAlyze Setup</h2>
+            <label>VTMR URL <a href="https://coinalyze.net" target="_blank" class="link">Go to CoinAlyze ↗</a></label>
+            <input type="text" name="vtmr_url" value="{{ vtmr }}" placeholder="https://coinalyze.net/?columns=...">
+            <div style="font-size:0.9rem; color:#848e9c; margin-top:9px; margin-bottom:3px; background:rgba(59,130,246,0.1); padding:10px; border-radius:8px;">
+                <strong>📋 Instructions:</strong><br>
+                1. Visit <a href="https://github.com/heisbuba/crypto-volume-analysis-toolkit" target="_blank" style="color:#3b82f6;">GitHub</a> and copy VTMR code<br>
+                2. Go to <a href="https://coinalyze.net" target="_blank" style="color:#3b82f6;">CoinAlyze.net</a> and Signup/Login<br>
+                3. Create <strong>Custom Metrics</strong> → Name: <strong>VTMR</strong>, paste the code<br>
+                4. Select these Columns: Mrkt Cap, Vol 24H, Open Interest Change % 24H, Predicted Funding Rate Average OI Weighted, VTMR<br>
+                5. Sort by VTMR (highest first)<br>
+                6. Copy the <strong>entire browser URL</strong> and paste above
+            </div>
+        </div>
+
+        <div class="grid-buttons" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+            <button type="submit" class="btn btn-green" style="margin: 0; width: 100%; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                SAVE & LAUNCH
+            </button>
+
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-red" style="margin: 0; width: 100%; height: 50px; padding: 0; box-sizing: border-box; text-decoration: none; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                QUIT
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

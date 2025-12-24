@@ -1,1 +1,69 @@
-# goes
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+/* --- BUTTONS --- */
+
+.btn-blue {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.btn-links {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- SOCIAL GRID --- */
+
+.grid-social {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+     </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>📚 Help & Information</h1>
+    
+    <div class="card">
+        <h2>About Crypto VAT v4.0</h2>
+        <div style="font-size:0.9rem; line-height:1.6; color:#848e9c;">
+            <p><strong>Crypto Volume Analysis Toolkit v4.0</strong> is a powerful web-based toolkit that helps you track high-volume crypto tokens in the last 24 hours and run cross-market analysis using spot + futures data. Generate professional PDF reports directly in your browser.</p>
+            <p>This cloud edition runs on Hugging Face Spaces with secure Firebase authentication, ensuring your API keys are protected and accessible from anywhere.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Getting Started Guide</h2>
+        <div style="font-size:0.9rem; line-height:1.6; color:#848e9c;">
+            <ol style="padding-left:20px;">
+                <li><strong>Register/Login:</strong> Create your secure account</li>
+                <li><strong>Setup Wizard:</strong> Configure your API keys (one-time setup)</li>
+                <li><strong>Spot Scan:</strong> Find high-volume tokens across multiple exchanges</li>
+                <li><strong>Get Futures Data:</strong> Export data from CoinAlyze and upload PDF</li>
+                <li><strong>Advanced Analysis:</strong> Combine spot & futures data for insights</li>
+                <li><strong>Reports:</strong> View and download your analysis reports</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Links & Resources</h2>
+        <a href="https://github.com/heisbuba/crypto-volume-analysis-toolkit" class="btn btn-blue" target="_blank">GitHub Repository</a>
+        <a href="https://medium.com/@bubanotes" class="btn btn-blue" target="_blank">Medium Blog</a>
+        
+        <div class="grid-social">
+            <a href="https://x.com/heisbuba" class="btn btn-links" style="margin:0; padding:12px; font-size:0.85rem;" target="_blank">𝕏 Twitter</a>
+            <a href="https://facebook.com/heisbuba" class="btn btn-links" style="margin:0; padding:12px; font-size:0.85rem;" target="_blank">Facebook</a>
+            <a href="https://youtube.com/@heisbuba25" class="btn btn-links" style="margin:0; padding:12px; font-size:0.85rem;" target="_blank">YouTube</a>
+            <a href="https://t.me/heisbuba" class="btn btn-links" style="margin:0; padding:12px; font-size:0.85rem;" target="_blank">Telegram</a>
+        </div>
+    </div>
+   
+    <a href="{{ url_for('main.home') }}" style="color: #3b82f6; text-decoration:none;" class="back-link">← Back to Dashboard</a>
+</div>
+{% endblock %}
