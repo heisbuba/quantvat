@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>🔄 Reset Password</h1>
+    <div class="card">
+       <p>You forgot your password right? Enter your email address below. Password reset link will be sent. Kindly check your spam box.</p>
+    </div>
+    <div class="card">
+        {% if error %}
+        <div class="error-message">⚠️ {{ error }}</div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="success-message">✅ {{ success }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <label>Email Address</label>
+            <input type="email" name="email" required placeholder="email@example.com" autocomplete="email">
+            <button type="submit" class="btn btn-green">SEND RESET LINK</button>
+        </form>
+    </div>
+    
+    <div style="text-align:center; margin-top:20px; display:flex; justify-content:center; gap:15px;">
+        <a href="{{ url_for('auth.login') }}" class="link" style="float:none;">Back to Login</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container">
-    <h1>🔐 Login to Your Account</h1>
+    <h1>📝 Create New Account</h1>
     <div class="card">
-       <p>Hey bro, login to your account to perform crypto institutional-grade cross-market analysis daily for free.</p>
+       <p>Create account to be part of this crypto journey where we use cross-market data to our advantage. It is fast, easy, and free.</p>
     </div>
     <div class="card">
         {% if error %}
@@ -15,15 +15,14 @@
             <input type="email" name="email" required placeholder="email@example.com" autocomplete="email">
             
             <label style="margin-top:15px; display:block;">Password</label>
-            <input type="password" name="password" required minlength="6" autocomplete="current-password">
+            <input type="password" name="password" required minlength="6" autocomplete="new-password">
             
-            <button type="submit" class="btn btn-green">LOGIN TO DASHBOARD</button>
+            <button type="submit" class="btn btn-green">CREATE ACCOUNT</button>
         </form>
     </div>
     
     <div style="text-align:center; margin-top:20px; display:flex; justify-content:center; gap:15px;">
-        <a href="{{ url_for('auth.register') }}" class="link" style="float:none;">Create Account</a>
-        <a href="{{ url_for('auth.reset_password') }}" class="link" style="float:none;">Forgot Password?</a>
+        <a href="{{ url_for('auth.login') }}" class="link" style="float:none;">Already have an account?</a>
     </div>
 </div>
 {% endblock %}
