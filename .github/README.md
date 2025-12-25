@@ -50,17 +50,25 @@
 
 - Use the upload button in **Get Futures** to upload the file and complete your cross-market analysis.
 
-# Disclaimer
+# ⚖️ Disclaimer
 
-This toolkit is for research and educational purposes only. It does not, in any way, provide financial advice, trading signals, or investment recommendations.
+CryptoVAT is for research and educational purposes only. It does not provide financial advice, trading signals, or investment recommendations. All data analysis should be verified independently.
 
 # Contribute
 
-MIT licensed — use, modify, or build freely. Contribute via issues, PRs, or feature suggestions. All contributions stay MIT.
+This project is MIT Licensed — you are free to use, modify, and build upon it.
+
+ - **Issues**: Report bugs or suggest data metrics.
+
+ - **Pull Requests**: Open a PR to add new analysis logic or UI improvements.
+
+ - **Feedback**: All suggestions are welcome to help make this the best free toolkit for traders.
 
 # Changelog
 
-- v1.0: full version created and uploaded on Nov. 30, 2025.
-- v2.0: Integrated OISS and explainer added on Dec. 02, 2025.
-- v3.0: Local Web-UI added.
-- v4.0: Cloud Edition (Hugging Face) with Firebase integration added.
+- **v4.0**: Cloud Edition (Hugging Face) with Firebase integration added and major logic and UI overhaul - Dec 25, 2025.
+- **v3.0**: Local Web-UI added.
+- **v2.0**: Integrated OISS and explainer added on Dec. 02, 2025.
+- **v1.0**: full version created and uploaded on Nov. 30, 2025.
+
+
