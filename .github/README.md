@@ -1,6 +1,6 @@
-# **Crypto Volume Analysis Toolkit**
+# 📈 Crypto Volume Analysis Toolkit (CryptoVAT)
 
-Is a powerful web-based suite designed for crypto analysts and traders. It tracks high-volume tokens across the last 24 hours, performing cross-market analysis using integrated Spot and Futures data. Generate professional, data-driven PDF reports directly in your browser with zero setup required.
+**A powerful web-based suite designed for crypto analysts and traders.** It tracks high-volume tokens across the last 24 hours, performing cross-market analysis using integrated Spot and Futures data. Generate professional, data-driven PDF reports directly in your browser with zero setup required.
 
 # **Demo**
 
@@ -24,15 +24,17 @@ Is a powerful web-based suite designed for crypto analysts and traders. It track
 - Useful for daily analysis routines
 - Explainer for Open Interest Signal Score (OISS)
 
-# **Universal Setup (Required for All Versions)**
+# **Setup Guide**
 
-**Everyone must do this step first.** To use the tool efficiently, you need specific futures data from CoinAlyze.
+- Launch the [Live App Here](https://huggingface.co/spaces/heisbuba/cryptovat).
+- Create an account and log in.
+- Obtan and enter your API keys in the Setup Wizard.
 
-1. Go to https://CoinAlyze.net and sign up.
+1. Visit [CoinAlyze.net](https://coinalyze.net) and sign up.
 
 2. Navigate to **Custom Metrics** and tap on **Create Custom Metrics**.
 
-3. Enter **VTMR** in the Name and Short Name fields, then paste the **VTMR code** below in the Expression field and save & close.
+3. Enter **VTMR** in the Name and Short Name fields, paste the **VTMR code** below in the Expression field, then **Save & Close**.
 
 ```code
 ((vol_1d[0] / mc_1d[0]) * 10) / 10 * (vol_1d[0] / mc_1d[0] >= 0.5)
@@ -40,7 +42,9 @@ Is a powerful web-based suite designed for crypto analysts and traders. It track
 
 - Go to **Columns**, deselect all, and select **Market Capitalization**, **Volume 24H**, **Open Interest Change % 24H**, **Predicted Funding Rate Average, OI Weighted**, and **VTMR**, then click **Apply**.
 
-- Bookmark the page and save it as VTMR.
+- Sort the whole data by VTMR, copy the URL and paste it in the VTMR box in App's setup wizard login to dashboard.
+
+- Tap on **Spot Scan** to generate spit data > Tap kn Get Futures > Visit your alread
 
 - Go to Chrome menu → Share → Print, and save it as it is without changing the file name in the Download folder.
 
@@ -55,31 +59,14 @@ So basically, you only need to launch Chrome  → type VTMR and open it  → pri
 If you are using **Standalone local environment v3.0 or v4.0**, then after you run the toolkit, it will take care of cleaning your download folder and leaving only the most valuable reports there. 
 
 
-# 1. Web-Based Setup (Cloud Edition)
+# 1. Setup Guide
 
 The easiest way to use the toolkit. No installation needed.
 
-- Go to the [Live App Here](https://huggingface.co/spaces/heisbuba/cryptovat).
-- Create an account and log in.
-- Enter your API keys once in the Setup Wizard.
+
 - Start scanning immediately using the dashboard.
 
-# 2. Local Installation & Setup
 
-If you prefer to run it locally on your own machine.
-
-## Installation
-
-1. Install these 5 libraries in your python or Pydroid3 environment:
-```code
-pip install requests pandas pypdf lxml flask
-```
-3. API Keys Setup
-Set these in your environment variables (for v2.0) or in the Setup Wizard (for v3.0+):
-  - HTML2PDF_API_KEY
-  - CMC_API_KEY
-  - LIVECOINWATCH_API_KEY
-  - COINRANKINGS_API_KEY
 
 # Disclaimer
 
