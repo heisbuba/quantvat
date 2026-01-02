@@ -99,11 +99,11 @@ def get_futures_data():
 @login_required
 def upload_futures():
     if 'futures_pdf' not in request.files:
-        return redirect(url_for('tasks.get_futures_data'))
+        return jsonify({"error": "No file part"}), 400
         
     file = request.files['futures_pdf']
     if file.filename == '':
-        return redirect(url_for('tasks.get_futures_data'))
+        return jsonify({"error": "No selected file"}), 400
         
     if file:
         uid = session['user_id']
@@ -111,6 +111,6 @@ def upload_futures():
         save_path = get_user_temp_dir(uid) / filename
         file.save(save_path)
         print(f"✅ User uploaded futures file: {save_path}")
-        return redirect(url_for('main.home'))
+        return jsonify({"status": "success"}), 200
         
-    return redirect(url_for('tasks.get_futures_data'))
+    return jsonify({"error": "Upload failed"}), 400

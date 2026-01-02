@@ -8,7 +8,15 @@ from .auth import login_required
 
 main_bp = Blueprint('main', __name__)
 
+# --- 1. NPublic Landing Page (Root URL) ---
 @main_bp.route("/")
+def index():
+    # Renders the public homepage.
+    # Logged-in users will see "Launch Dashboard" button in index.html logic.
+    return render_template("index.html")
+
+# Dashboard route
+@main_bp.route("/dashboard")
 @login_required
 def home():
     uid = session['user_id']
@@ -86,16 +94,17 @@ def factory_reset():
     return redirect(url_for('main.setup'))
 
 @main_bp.route("/help")
-@login_required
 def help_page():
-    return render_template("dashboard/help.html")
+    setup_status = False
+    if 'user_id' in session:
+        setup_status = is_user_setup_complete(session['user_id'])
+    return render_template("dashboard/help.html", is_setup_complete=setup_status)
 
 # --- Admin Section ---
 
 @main_bp.route("/admin")
 @login_required
 def admin_dashboard():
-    # Only allow actual admins logic could go here, but for now we rely on UI hiding
     # Fetch Firestore Stats
     try:
         if db:
