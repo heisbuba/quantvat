@@ -58,6 +58,7 @@ This project is MIT Licensed — you are free to use, modify, and build upon it.
 
 # **Changelog**
 
+- **v4.1**: Improved Spot Volume Tracker Data Accuracy with mandatoy CoinGecko Demo API configuration coming up - *Jan 11, 2026*
 - **v4.0**: Cloud Edition (Hugging Face) with Firebase integration added and major logic and UI overhaul - *Dec 25, 2025*.
 - **v3.0**: Local Web-UI added.
 - **v2.0**: Integrated OISS and explainer added - *Dec. 02, 2025*.
