@@ -19,7 +19,7 @@ except ImportError:
 # --- Constants ---
 STABLECOINS = {
     'USDT', 'USDC', 'BUSD', 'DAI', 'BSC-USD', 'USD1', 'CBBTC', 'WBNB', 'WETH',
-    'UST', 'TUSD', 'USDP', 'USDD', 'FRAX', 'GUSD', 'LUSD', 'FDUSD'
+    'UST','SBUSDT', 'TUSD', 'USDP', 'USDD', 'FRAX', 'GUSD', 'LUSD', 'FDUSD'
 }
 
 FIREBASE_WEB_API_KEY = os.environ.get("FIREBASE_API_KEY")
