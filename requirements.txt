@@ -2,7 +2,7 @@ flask
 firebase-admin
 requests
 pandas
-pypdf
+pypdf==6.4.0
 lxml
 gunicorn
 playwright
