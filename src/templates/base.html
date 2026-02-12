@@ -3,30 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}CryptoVAT - Crypto Volume Analysis Toolkit{% endblock %}</title>
-    <meta name="description" content="{% block description %}Professional Crypto Volume Analysis Toolkit. Cross-market Spot/Futures analysis, tracking & automated data-driven PDF reporting.{% endblock %}">
-    <meta name="keywords" content="{% block keywords %}crypto, volume analysis, spot, futures, trading tool, VTMR, open interest, coinalyze, heisbuba{% endblock %}">
+    <title>{% block title %}QuantVAT - Crypto Volume Analysis Toolkit{% endblock %}</title>
+    <meta name="description" content="{% block description %}Quantitative Crypto Volume Analysis Toolkit for cross-market Spot/Futures analysis, tracking & automated data-driven PDF reporting.{% endblock %}">
+    <meta name="keywords" content="{% block keywords %}crypto, volume analysis, spot, cryptoquant, volume anomaly, futures, trading tool, VTMR, open interest, coinalyze, heisbuba{% endblock %}">
     
     <meta name="author" content="Buba">
     <meta name="robots" content="index, follow">
 
-    <meta property="og:title" content="{% block og_title %}CryptoVAT - Professional Volume Analysis{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}QuantVAT - Professional Volume Analysis{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Track Spot & Futures volume like a pro. Detect whale movements and track VTMR data.{% endblock %}">
-    <meta property="og:url" content="https://cryptovat.hf.space{{ request.path }}">
+    <meta property="og:url" content="https://quantvat.hf.space{{ request.path }}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="CryptoVAT">
+    <meta property="og:site_name" content="QuantVAT">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@heisbuba">
     <meta name="twitter:creator" content="@heisbuba">
     <meta name="twitter:title" content="{% block twitter_title %}{{ self.og_title() }}{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}{{ self.og_description() }}{% endblock %}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-512.png') }}"> 
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#151a1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('QuantVAT: Service Worker Active'))
+        .catch(err => console.error('PWA Registration Error', err));
+    });
+  }
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "QuantVAT",
+  "operatingSystem": "Web",
+  "applicationCategory": "FinanceApplication",
+  "description": "Quantitative Crypto Volume Analysis Toolkit for cross-market Spot/Futures analysis.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Buba",
+    "url": "https://x.com/heisbuba"
+  }
+}
+  </script>
    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <style>
 /* --- CSS VARIABLES  --- */
 :root {
     /* Backgrounds */
+    --pwa-bg: #151a1e;
     --bg-dark: #151a1e;      
     --bg-card: #1e252a;       
     --bg-glass: rgba(21, 26, 30, 0.90); 
@@ -92,17 +129,27 @@ a { text-decoration: none; transition: 0.2s; }
 
 .header h1 {
     margin: 0;
-    font-size: 1.4rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -0.8px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
 }
       
 .header h1 > a {
     color: #fff;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
 }
-.header h1 > a span { color: var(--accent-green); } 
 
-.header h1 > a:hover { opacity: 0.9; }
+.header h1 > a span { 
+    color: var(--accent-green, #10b981); 
+} 
+
+.header h1 > a:hover { 
+    opacity: 0.8; 
+}
 
 /* Icons */
 .icon-btn {
@@ -159,7 +206,7 @@ input[type="password"] {
     border: 1px solid var(--border);
     color: #fff;
     border-radius: 8px;
-    font-family: 'Inter', sans-serif; /* Cleaner than monospace for inputs */
+    font-family: 'Inter', sans-serif;
     margin-top: 8px;
     box-sizing: border-box;
     font-size: 0.95rem;
@@ -270,7 +317,8 @@ input:focus { outline: none; border-color: var(--accent-green); }
 
 /* --- UTILITIES --- */
 .link { color: var(--accent-blue); font-size: 0.9rem; float: right; margin-top: 5px;}
-.link:hover { text-decoration: underline; }
+.get-key-link { color: var(--accent-green); font-size: 0.9rem; float: right; margin-top: 5px;}
+.link:hover, .get-key-link:hover { text-decoration: underline; }
 
 .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
@@ -308,8 +356,30 @@ input:focus { outline: none; border-color: var(--accent-green); }
     padding: 0;
     margin: 0;
     border: none;
-      }
-.back-nav-btn { margin-bottom: 5px; }
+}
+      
+.back-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent !important;
+    border: 1px solid var(--text-dim) !important;
+    color: var(--text-dim) !important;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    margin-bottom: 5px; 
+}
+
+.back-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.05) !important; 
+    border-color: #eaecef !important;
+    color: #eaecef !important;  
+    transform: translateY(-2px);
+}
 
 /* --- GLOBAL FOOTER --- */
 
@@ -318,31 +388,38 @@ input:focus { outline: none; border-color: var(--accent-green); }
     border-top: 1px solid var(--border);
     padding: 40px 5%; 
     margin-top: auto; 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    text-align: center;
     font-size: 0.9rem;
     color: var(--text-dim);
     font-weight: 500;
 }
 
-.footer .credit a { 
+.footer p {
+    margin: 0;
+}
+
+.footer a { 
     color: var(--accent-green); 
     font-weight: 600; 
     text-decoration: none;
     transition: opacity 0.2s;
 }
-.footer .credit a:hover { opacity: 0.8; }
 
-/* Mobile Stack */
+.footer a:hover { 
+    opacity: 0.8; 
+}
+
 @media (max-width: 600px) {
     .footer { 
-        flex-direction: column; 
-        gap: 20px; 
-        text-align: center; 
-        padding-bottom: 30px;
+        padding: 30px 20px;
     }
 }
+
+@media (display-mode: standalone) {
+
+    body { background-color: var(--pwa-bg); }
+
+  }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -350,10 +427,25 @@ input:focus { outline: none; border-color: var(--accent-green); }
 
     <div class="header">
         <h1>
-            <a href="{{ url_for('main.home') if session.get('user_id') else url_for('main.index') }}" style="display: flex; align-items: center; gap: 10px;">
-                <span>Crypto<span style="color:var(--accent-green)">VAT</span></span>
-            </a>
-        </h1>
+          <a href="{{ url_for('main.home') if session.get('user_id') else url_for('main.index') }}" 
+   style="display: flex; align-items: center; gap: 0; text-decoration: none;">
+    
+    <svg width="28" height="28" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" 
+         style="margin-bottom: 2px; margin-right: -2px; flex-shrink: 0;">
+      <rect width="512" height="512" rx="120" fill="#151a1e"/>
+      <path d="M380 380L430 430" stroke="#ffffff" stroke-width="32" stroke-linecap="round"/>
+      <circle cx="256" cy="256" r="160" stroke="#ffffff" stroke-width="32"/>
+      <rect x="190" y="270" width="30" height="60" rx="4" fill="var(--accent-green)"/>
+      <rect x="241" y="230" width="30" height="100" rx="4" fill="var(--accent-green)"/>
+      <rect x="292" y="190" width="30" height="140" rx="4" fill="var(--accent-green)"/>
+    </svg>
+    
+    <span style="font-weight: 800; font-size: 1.4rem; letter-spacing: -1px; color: #fff; line-height: 1;">
+        uant<span style="color: var(--accent-green);">VAT</span>
+    </span>
+</a>
+   
+</h1>
         <div style="display: flex; align-items: center; gap: 5px;">
             
             <a href="{{ url_for('main.help_page') }}" class="icon-btn" title="Help">
@@ -368,7 +460,7 @@ input:focus { outline: none; border-color: var(--accent-green); }
                 {% endif %}
                 
                 <a href="{{ url_for('auth.logout') }}" class="logout-btn" title="Logout" style="display: flex; align-items: center;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 </a>
             {% endif %}
         </div>
@@ -408,11 +500,12 @@ input:focus { outline: none; border-color: var(--accent-green); }
     </main>
 
     <footer class="footer">
-        <div class="credit">
-            &copy; <span id="year"></span> 
-            <a href="{{ url_for('main.index') }}" title="Crypto Volume Analysis Toolkit">CryptoVAT</a>. Created by <a href="https://x.com/heisbuba" title="X @heisbuba" target="_blank">Buba</a> with Data curiosity. MIT Licenced.
-        </div>
-    </footer>
+    <p>
+        &copy; <span id="year"></span> 
+        <a href="{{ url_for('main.index') }}" title="Quantitative Crypto Volume Analysis Toolkit">QuantVAT</a>. 
+        Created by <a href="https://x.com/heisbuba" title="X @heisbuba" target="_blank">Buba</a> with Data curiosity. MIT Licensed.
+    </p>
+</footer>
 
 <script>
       // Update year automically

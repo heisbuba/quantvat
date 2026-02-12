@@ -3,18 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>CryptoVAT - Crypto Cross-Market Volume Analysis Toolkit</title>
-    
-    <meta name="description" content="A powerful web-based suite designed for crypto analysts and traders. Perform cross-market Spot/Futures analysis, track VTMR, and generate data-driven automated PDF reports.">
-    
-    <meta property="og:title" content="CryptoVAT: Professional Crypto Volume Analysis Toolkit">
-    <meta property="og:description" content="Crypto Volume Analysis Toolkit is a powerful web-based suite designed for crypto analysts. Perform cross-market spot/futures analysis, tracking, and automated PDF reporting.">
-    <meta property="og:url" content="https://cryptovat.hf.space">
+    <meta name="theme-color" content="#151a1e">
+    <title>QuantVAT - Quantitative Crypto Volume Analysis Toolkit</title>
+    <meta name="description" content="Quantitative Crypto Volume Analysis Toolkit for cross-market Spot/Futures analysis, tracking & automated data-driven PDF reporting.">
+    <meta property="og:title" content="QuantVAT: Crypto Volume Analysis Toolkit">
+    <meta property="og:description" content="Quantitative Crypto Volume Analysis Toolkit for cross-market Spot/Futures analysis, tracking & automated data-driven PDF reporting.">
+    <meta property="og:url" content="https://quantvat.hf.space">
+    <link rel="manifest" href="/manifest.json">
     <meta property="og:type" content="website">
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
-
+   <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('QuantVAT: Service Worker Active'))
+      .catch(err => console.error('PWA Registration Error', err));
+       });
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+       "@context": "https://schema.org",
+       "@type": "SoftwareApplication",
+       "name": "QuantVAT",
+       "operatingSystem": "Web",
+       "applicationCategory": "FinanceApplication",
+       "description": "Quantitative Crypto Volume Analysis Toolkit for cross-market Spot/Futures analysis.",
+       "offers": {
+       "@type": "Offer",
+       "price": "0",
+       "priceCurrency": "USD"
+       },
+       "author": {
+       "@type": "Person",
+       "name": "Buba",
+       "url": "https://x.com/heisbuba"
+       }
+    }
+     </script>
     <style>
         :root {
             --bg-main: #151a1e;       
@@ -157,7 +183,7 @@
         }
 
         .hero h1 {
-            font-size: 3.2rem;
+            font-size: 3rem;
             font-weight: 800;
             margin-bottom: 20px;
             line-height: 1.1;
@@ -306,7 +332,7 @@
         @media (max-width: 768px) {
             .nav-links, .nav-actions { display: none; }
             .hamburger { display: block; }
-            .hero h1 { font-size: 2.2rem; }
+            .hero h1 { font-size: 1.8rem; }
             .hero-buttons { flex-direction: column; }
             
             .btn { width: 100%; text-align: center; box-sizing: border-box; }
@@ -319,18 +345,34 @@
             
             .stats-container { flex-direction: column; gap: 30px; }
         }
+
     </style>
 </head>
 <body>
 
     <nav class="navbar">
-        <a href="/" class="logo">Crypto<span>VAT</span></a>
+        <a href="{{ url_for('main.home') if session.get('user_id') else url_for('main.index') }}" 
+   style="display: flex; align-items: center; gap: 0; text-decoration: none;">
+    
+    <svg width="28" height="28" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" 
+         style="margin-bottom: 2px; margin-right: -2px; flex-shrink: 0;">
+      <rect width="512" height="512" rx="120" fill="#151a1e"/>
+      <path d="M380 380L430 430" stroke="#ffffff" stroke-width="32" stroke-linecap="round"/>
+      <circle cx="256" cy="256" r="160" stroke="#ffffff" stroke-width="32"/>
+      <rect x="190" y="270" width="30" height="60" rx="4" fill="var(--accent-green)"/>
+      <rect x="241" y="230" width="30" height="100" rx="4" fill="var(--accent-green)"/>
+      <rect x="292" y="190" width="30" height="140" rx="4" fill="var(--accent-green)"/>
+    </svg>
+    
+    <span style="font-weight: 800; font-size: 1.4rem; letter-spacing: -1px; color: #fff; line-height: 1;">
+        uant<span style="color: var(--accent-green);">VAT</span>
+    </span>
+</a>
 
         <div class="nav-links">
             <a href="#features">Features</a>
             <a href="#pricing">Pricing</a>
-            <a href="https://github.com/heisbuba/cryptovat" target="_blank" title="View Source Code">Open Source ↗</a>
-            <a href="#" style="color: var(--accent-orange);" title="Donate">Donate ♥</a>
+            <a href="https://github.com/heisbuba/quantvat" target="_blank" title="View Source Code">Open Source ↗</a>
         </div>
 
         <div class="nav-actions">
@@ -352,8 +394,7 @@
         
         <a href="#features" onclick="toggleMenu()">Features</a>
         <a href="#pricing" onclick="toggleMenu()">Pricing</a>
-        <a href="https://github.com/heisbuba/cryptovat" target="_blank">Open Source</a>
-        <a href="#" style="color:var(--accent-orange);">Donate</a>
+        <a href="https://github.com/heisbuba/quantvat" target="_blank">Open Source</a>
         
         <div style="width: 50%; height: 1px; background: var(--border); margin: 10px 0;"></div>
 
@@ -366,10 +407,10 @@
     </div>
 
     <section class="hero">
-        <h1>Free Crypto <br>Cross-market & Data-driven Analysis.</h1>
+        <h1>Quantitative Crypto Volume Analysis Toolkit
+        </h1>
         <p>
-            Fuse Spot market trends with Futures data to understand true market direction.
-            Verify volume, track the <strong>VTMR metric</strong>, Funding Rate, OISS, and generate professional PDF reports in under 60 seconds.
+            Merge Spot and Futures data to perform cross-market analysis. Verify volume, track the VTMR metric, Funding Rate, OISS, and generate professional PDF reports in under 60 seconds.
         </p>
 
         <div class="hero-buttons">
@@ -390,7 +431,7 @@
 
     <div class="stats-container">
         <div class="stat-item">
-            <span class="stat-number">5+</span>
+            <span class="stat-number">6+</span>
             <span class="stat-label">Data Sources Verified</span>
         </div>
         <div class="stat-item">
@@ -405,96 +446,116 @@
 
     <section id="features" class="features">
         <div style="grid-column: 1 / -1; text-align: center; margin-bottom: 20px;">
-            <h2 class="section-title">Why Use CryptoVAT?</h2>
-            <p class="section-subtitle">A multi-threaded engine built for data-driven traders.</p>
-        </div>
+            <h2 class="section-title">QuantVAT Ecosystem</h2>
+            <p class="section-subtitle">Easy to use "Bring Your Own Keys" environment for traders who require self-controlled data and manual API integration.</p>
+    </div>
         
         <div class="feature-card">
             <span class="feature-icon">📊</span>
             <h3>VTMR Logic Engine</h3>
-            <p>Proprietary <strong>Volume-to-MarketCap-Ratio</strong> tracking. Instantly spot high-potential accumulation phases before the crowd.</p>
+            <p>Tracks the <strong>Volume-to-MarketCap-Ratio</strong> to identify divergence between trading activity and market valuation. Useful for spotting high-potential opportunities before the crowd.</p>
         </div>
 
         <div class="feature-card">
             <span class="feature-icon">⚡</span>
             <h3>OISS & Funding</h3>
-            <p>Integrated <strong>Open Interest Signal Score</strong> and Funding Rate analysis. We filter out fake volume to show real money flow.</p>
+            <p>Integrated <strong>Open Interest Signal Score</strong> and Funding Rate analysis. We filter out fake volume to show real money flow and crowd's sentiment.</p>
         </div>
 
+      <div class="feature-card">
+        <span class="feature-icon">🧠</span>
+         <h3>AI-Powered Trading Journal</h3>
+           <p>A semi-automated trading journal system with an integrated <strong>AI Auditor</strong> that reviews your entries to help detect patterns in your execution and psychological state—and is blunt about it. Your data remains secure in your Google Drive.</p>
+      </div>
+
+       <div class="feature-card">
+        <span class="feature-icon">🔍</span>
+         <h3>Deep Diver Engine</h3>
+           <p>A dedicated spot tokens browser and quantitative volumetric analysis engine. Analyze token metadata, price change percentage, <strong>VTPC, VTMR</strong>, and real-time velocity metrics to evaluate liquidity and price impact. Powered by CoinGecko.</p>
+       </div>
+      
         <div class="feature-card">
             <span class="feature-icon">📑</span>
             <h3>Automated Reporting</h3>
-            <p>Generate clean, professional data-driven PDF reports directly in your browser. Perfect for sharing or archiving trade thesis.</p>
+            <p>Generate clean, professional data-driven reports directly in your browser. Seamlessly transition to the <strong>Deep Diver</strong> engine for granular analysis, or archive your trade thesis for long-term edge refinement.</p>
         </div>
       
-         <div class="feature-card">
-            <span class="feature-icon">🤝</span>
-            <h3>Community Driven</h3>
-            <p>100% Open Source and transparency-first. Built by traders, for traders—constantly evolving based on real community feedback and needs.</p>
-        </div>
+
+        <div class="feature-card">
+        <span class="feature-icon">🤝</span>
+        <h3>Open Source Core</h3>
+        <p>100% Open Source code. Built for transparency, allowing users to verify the logic and contribute to the toolkit's development via GitHub.</p>
+    </div>
+
     </section>
 
     <section id="pricing" class="pricing-section">
-        <h2 class="section-title">Free Access</h2>
-        <p class="section-subtitle">Customizeable tools provided free for the community.</p>
+    <h2 class="section-title">Free Access</h2>
+    <p class="section-subtitle">Customizable tools provided free for the community with full data ownership.</p>
 
-        <div class="pricing-card">
-            <div class="badge">v4.0 Available</div>
-            <div class="price">$0<span class="period">/mo</span></div>
+    <div class="pricing-card">
+        <div class="badge">v4.5.0 Available</div>
+        <div class="price">$0<span class="period">/mo</span></div>
 
-            <ul class="feature-list">
-                <li><span>✓</span> Unlimited Spot & Futures Scans</li>
-                <li><span>✓</span> Multi-Source Volume Verification</li>
-                <li><span>✓</span> PDF Report Generation</li>
-                <li><span>✓</span> Secure Firebase Integration</li>
-            </ul>
+        <ul class="feature-list">
+            <li><span>✓</span> <strong>Deep Diver:</strong> Spot Volumetric Analysis (VTPC/VTMR)</li>
+            <li><span>✓</span> <strong>AI Auditor:</strong> Blunt Psychological Trade Reviews</li>
+            <li><span>✓</span> <strong>BYOK Architecture:</strong> Use your own API keys</li>
+            <li><span>✓</span> <strong>Futures Fusion:</strong> Cross-Market Funding, OISS Scoring</li>
+            <li><span>✓</span> <strong>Data Privacy:</strong> Automated Google Drive Backups</li>
+            <li><span>✓</span> <strong>Reporting:</strong> Browser-based PDF Generation</li>
+        </ul>
 
-            {% if session.get('user_id') %}
-                <a href="{{ url_for('main.home') }}" class="btn btn-primary" style="width: 100%; box-sizing: border-box;">
-                    Go to Dashboard ➜
-                </a>
-            {% else %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary" style="width: 100%; box-sizing: border-box;">
-                    Create Free Account
-                </a>
-            {% endif %}
-        </div>
-    </section>
-
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('main.home') }}" class="btn btn-primary" style="width: 100%; box-sizing: border-box;">
+                Go to Dashboard ➜
+            </a>
+        {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary" style="width: 100%; box-sizing: border-box;">
+                Create Free Account
+            </a>
+        {% endif %}
+    </div>
+</section>
+  
     <footer class="footer">
         <p>
             &copy; <span id="year"></span> 
-            <a href="{{ url_for('main.index') }}" title="Crypto Volume Analysis Toolkit">CryptoVAT</a>. Created by <a href="https://x.com/heisbuba" title="X @heisbuba" target="_blank">Buba</a> with Data curiosity. MIT Licensed.
+            <a href="{{ url_for('main.index') }}" title="Quantitative Crypto Volume Analysis Toolkit">QuantVAT</a>. Created by <a href="https://x.com/heisbuba" title="X @heisbuba" target="_blank">Buba</a> with Data curiosity. MIT Licensed.
         </p>
     </footer>
 
-    <script>
-        // Dynamic Sticky Navbar
+  
+   <script>
+    // Dynamic Sticky Navbar
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
         window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {
                 navbar.classList.add('scrolled');
             } else {
                 navbar.classList.remove('scrolled');
             }
+        }, {
+            passive: true
         });
+    }
 
-        // Mobile Menu Toggle
-        function toggleMenu() {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('active');
-            
-            // Prevent background scrolling when menu is open
-            if (menu.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = 'auto';
-            }
-        }
+    // Mobile Menu Toggle
+    function toggleMenu() {
+        const menu = document.getElementById('mobileMenu');
+        if (!menu) return;
+        const isActive = menu.classList.toggle('active');
+        document.body.style.overflow = isActive ? 'hidden' : 'auto';
+    }
 
-        // Auto Year
-        document.getElementById('year').textContent = new Date().getFullYear();
-    </script>
-
+    // Auto Year
+    const yearEl = document.getElementById('year');
+    if (yearEl) {
+        yearEl.textContent = new Date().getFullYear();
+    }
+    
+</script> 
+{% include 'includes/partials/pwa_prompt.html' %}
 </body>
 </html>
