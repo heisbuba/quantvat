@@ -1,117 +1,158 @@
 {% extends "base.html" %}
 
-{% block title %}Upload Futures Data - CryptoVAT{% endblock %}
+{% block title %}Upload Futures Data - QuantVAT{% endblock %}
 {% block description %}Upload your CoinAlyze PDF export to fuse futures data with spot analysis.{% endblock %}
 
 {% block extra_css %}
 <style>
-/* --- CONTAINER STYLES --- */
+/* --- PAGE LAYOUT --- */
 .container-futures {
     width: 90%;               
     max-width: 600px;         
-    margin: 30px auto;       
-    background: var(--bg-card, #151a1e);
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid var(--border, #2b3139);
-    text-align: center;
+    margin: 40px auto;       
     box-sizing: border-box;  
+}
+
+.futures-card {
+    background: var(--bg-card, #1e252a);
+    border: 1px solid var(--border, #2b3139);
+    padding: 35px;           
+    border-radius: 12px;
+    text-align: center;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
-  
+
 /* Mobile Adjustment */
 @media (max-width: 480px) {
     .container-futures {
-        padding: 20px;      
+        width: 90%;          
+        padding: 0; 
         margin-top: 20px;
+    }
+    .futures-card {
+        padding: 25px 15px;
     }
 }
 
+/* --- TYPOGRAPHY --- */
 h1 {
-    color: var(--accent-orange, #f59e0b);
-    font-size: 1.5rem;
-    margin-bottom: 20px;
+    color: var(--accent-green, #10b981);
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
 }
 
 /* --- BUTTON STYLES --- */
 .btnf {
-    background: var(--accent-orange, #f59e0b);
-    width: auto;
-    color: #000;
-    padding: 15px 25px;
+    background: var(--accent-green, #10b981);
+    color: #000 !important; 
+    padding: 15px 30px;
     border-radius: 8px;
     text-decoration: none;
     font-weight: bold;
     display: inline-block;
-    margin-top: 20px;
     transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
 }
 
 .btnf:hover {
-    background: #d97706;
+    background: #059669; 
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
 }
 
-/* Upload Button Variant */
 .btn-upload {
-    background: transparent;
-    border: 1px solid var(--accent-orange, #f59e0b);
-    color: var(--accent-orange, #f59e0b);
+    background: var(--accent-green, #10b981) !important;
+    color: #000000 !important; 
     width: 100%;
-    margin-top: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;       
+    font-weight: 900; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
     cursor: pointer;
-    font-size: 1rem;
+    transition: all 0.2s ease;
+    margin-top: 15px;
 }
 
 .btn-upload:hover {
-    background: rgba(245, 158, 11, 0.1);
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
+    background: #059669 !important; /* Original deeper green hover */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
 }
 
-/* --- INSTRUCTION TEXT --- */
-.instruction {
+/* --- UI ELEMENTS --- */
+.setup-guide-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border, #2b3139);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
     text-align: left;
-    margin-top: 20px;
+}
+
+.instruction {
+    color: var(--text-gray, #848e9c);
     line-height: 1.6;
-    color: var(--text-dim, #848e9c);
     font-size: 0.95rem;
 }
 
-/* --- FILE INPUT --- */
+/* --- THEN DIVIDER --- */
+.then-divider {
+    height: 1px; 
+    background: var(--border, #2b3139); 
+    margin: 40px 0; 
+    position: relative;
+    width: 100%;
+}
+
+.then-divider span {
+    position: absolute; 
+    top: -10px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    background: var(--bg-card, #1e252a); 
+    padding: 0 15px; 
+    color: var(--text-gray, #848e9c); 
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+/* --- INPUTS & PROGRESS --- */
 input[type="file"] {
-    background: #1e252a;
-    color: #848e9c;
-    padding: 12px;
+    background: var(--bg-main, #151a1e);
+    color: var(--text-gray, #848e9c);
+    padding: 15px;
     border-radius: 8px;
-    border: 1px dashed #2b3139;
+    border: 1px dashed var(--border, #2b3139);
     width: 100%;
     margin-top: 15px;
     box-sizing: border-box; 
     cursor: pointer;
 }
 
-/* --- PROGRESS BAR ANIMATION --- */
-@keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
+#statusText, #percent {
+    color: var(--accent-green, #10b981) !important;
 }
 
-.setup-guide-box {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 15px;
-    margin-top: 20px;
-    text-align: left;
-    font-size: 0.95rem;
+#bar {
+    background: var(--accent-green, #10b981) !important;
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-futures">
+  <div class="futures-card">
     <h1>📊 Get Futures Data</h1>
     
     <div class="setup-guide-box">
@@ -126,9 +167,7 @@ input[type="file"] {
     
     <a href="{{ futures_url }}" target="_blank" class="btnf">OPEN COINALYZE ↗</a>
     
-    <div style="height: 1px; background: #2b3139; margin: 30px 0; position: relative;">
-        <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #151a1e; padding: 0 15px; color: #2b3139; font-weight: bold;">THEN</span>
-    </div>
+    <div class="then-divider"><span>THEN</span></div>
     
     <form id="uploadForm">
         <p style="text-align:left; font-size:0.9rem; color:#848e9c; margin-bottom:5px;">Upload the saved PDF:</p>
@@ -153,15 +192,15 @@ input[type="file"] {
         </div>
     </form>
   
-</div>
+</div></div>
 
 <script>
     const form = document.getElementById('uploadForm');
-    const fileInput = document.getElementById('fileInput');
+    const fileInput = document.getElementById('fileInput'); 
     const uploadUrl = "{{ url_for('tasks.upload_futures') }}"; 
     const nextUrl = "{{ url_for('main.home') }}"; 
+    const progressUrl = "{{ url_for('tasks.progress') }}"; 
 
-    // UI Elements
     const btn = document.getElementById('btn');
     const progressBox = document.getElementById('progressBox');
     const bar = document.getElementById('bar');
@@ -169,95 +208,94 @@ input[type="file"] {
     const msg = document.getElementById('msg');
     const statusText = document.getElementById('statusText');
 
+    // CONFIG: 70% for Upload, 30% for Parsing
+    const UPLOAD_WEIGHT = 0.7;
+
     form.onsubmit = (e) => {
         e.preventDefault(); 
         const file = fileInput.files[0];
-
-        // 1. SAFETY CHECKS
-        if (!file) { alert("Please select a PDF file first."); return; }
-        if (file.size === 0) {
-            alert("⚠️ File Error: 0-byte file detected.\nPlease select from Internal Storage.");
-            return;
-        }
-
-        // 2. INITIALIZE UI
+        if (!file) return;
+        
         btn.style.display = 'none';
         progressBox.style.display = 'block';
         bar.style.width = '0%';
         percent.innerText = '0%';
         msg.style.display = 'none';
-        statusText.innerText = "Uploading...";
+        statusText.innerText = "Uploading PDF to Engine...";
 
         const formData = new FormData();
         formData.append("futures_pdf", file);
 
-        // --- XHR (With Progress Bar) ---
         const xhr = new XMLHttpRequest();
 
+        // PHASE 1: Upload (0% to 70% of total bar)
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
-                const p = Math.round((event.loaded / event.total) * 100);
-                bar.style.width = p + '%';
-                percent.innerText = p + '%';
+                const rawPercent = (event.loaded / event.total) * 100;
+                // Map 0-100 upload to 0-70 visual
+                const globalProgress = Math.round(rawPercent * UPLOAD_WEIGHT);
+                
+                bar.style.width = globalProgress + '%';
+                percent.innerText = globalProgress + '%';
             }
         };
 
         xhr.onload = () => {
             if (xhr.status === 200) {
-                handleSuccess();
+                statusText.innerText = "Upload Complete. Processing Tables...";
+                checkParsingStatus();
             } else {
                 alert("Server Error: " + xhr.status);
                 resetUI();
             }
         };
 
-        // --- FALLBACK MECHANISM ---
-        xhr.onerror = () => {
-            console.warn("XHR Failed. Switching to Robust Mode (Fetch)...");
-            statusText.innerText = "Retrying ...";
-            bar.style.width = '50%'; 
-            
-            // RETRY FETCH (No Progress Bar)
-            attemptRobustUpload(formData);
-        };
-
         xhr.open("POST", uploadUrl);
         xhr.send(formData);
     };
 
-    async function attemptRobustUpload(formData) {
-        try {
-            const response = await fetch(uploadUrl, {
-                method: 'POST',
-                body: formData
-            });
+    // PHASE 2: Parsing (70% to 100% of total bar)
+    function checkParsingStatus() {
+        fetch(progressUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (data.percent !== undefined) {
+                    // Start from 70 and add backend % weighted to remaining 30%
+                    const backendProgress = Math.round(data.percent);
+                    const globalProgress = Math.round((UPLOAD_WEIGHT * 100) + (backendProgress * (1 - UPLOAD_WEIGHT)));
+                    
+                    bar.style.width = globalProgress + '%';
+                    percent.innerText = globalProgress + '%';
+                }
+                
+                statusText.innerText = data.text || "Analyzing PDF content...";
 
-            if (response.ok) {
-                handleSuccess();
-            } else {
-                throw new Error("Server Error " + response.status);
-            }
-        } catch (error) {
-            alert("⚠️ Upload Failed: " + error.message + "\n\nTry selecting the file from 'Internal Storage' > 'Downloads'.");
-            resetUI();
-        }
+                if (data.status === "success") {
+                    handleSuccess();
+                } else if (data.status === "error") {
+                    alert("⚠️ Engine Error: " + data.text);
+                    resetUI();
+                } else {
+                    setTimeout(checkParsingStatus, 800); 
+                }
+            })
+            .catch(err => {
+                console.error("Polling error:", err);
+                setTimeout(checkParsingStatus, 2000); 
+            });
     }
 
     function handleSuccess() {
         bar.style.width = '100%';
         percent.innerText = '100%';
-        statusText.innerText = "Complete!";
-        msg.style.display = 'block'; // "File received..."
-        
-        setTimeout(() => {
-            window.location.href = nextUrl;
-        }, 500);
+        statusText.innerText = "Complete! Data Fused.";
+        msg.style.display = 'block'; 
+        setTimeout(() => { window.location.href = nextUrl; }, 1500);
     }
 
     function resetUI() {
         btn.style.display = 'block';
         progressBox.style.display = 'none';
-        bar.style.width = '0%';
     }
 </script>
 {% endblock %}

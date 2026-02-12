@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Setup Wizard - CryptoVAT{% endblock %} 
-{% block description %}Welcome to CryptoVAT one-time setup wizard. Configure your API keys and VTMR URL to unlock the full potential of the latest version of this toolkit.{% endblock %} 
-{% block og_title %}Setup Wizard - CryptoVAT{% endblock %} 
-{% block og_description %}Welcome to CryptoVAT one-time setup wizard. Configure your API keys and VTMR URL to unlock the full potential of the latest version of this toolkit.{% endblock %} 
+{% block title %}Setup Wizard - QuantVAT{% endblock %} 
+{% block description %}Welcome to QuantVAT one-time setup wizard. Configure your API keys and VTMR URL to unlock the full potential of the latest version of this toolkit.{% endblock %} 
+{% block og_title %}Setup Wizard - QuantVAT{% endblock %} 
+{% block og_description %}Welcome to QuantVAT one-time setup wizard. Configure your API keys and VTMR URL to unlock the full potential of the latest version of this toolkit.{% endblock %} 
 {% block keywords %}register, secure access, crypto dashboard, cryptovat, trading tools{% endblock %} 
 {% block extra_css %}
 <style>
@@ -41,7 +41,7 @@
     <h1>⚙️ Setup Wizard</h1>
     
     <div class="card">
-        <p>Welcome to <b>CryptoVAT</b> one-time setup wizard. Configure your API keys and VTMR URL to unlock the full potential of the latest version of this toolkit.</p>
+        <p>Welcome to <b>QuantVAT</b> one-time setup wizard. Configure your API keys and VTMR URL to unlock the full potential of the latest version of this kit.</p>
         <p><small>Note: All values are encrypted and stored securely in your cloud account. You can access, delete, or update them anytime.</small></p>
     </div>
 
@@ -49,14 +49,15 @@
         <div class="card">
             <h2 style="color: var(--accent-green);">API Keys Setup</h2>
             
-            <label>CoinMarketCap Key <a href="https://pro.coinmarketcap.com/signup/" target="_blank" class="link">Get Key ↗</a></label>
+            <label>CoinMarketCap Key <a href="https://pro.coinmarketcap.com/signup/" target="_blank" class="get-key-link">Get Key ↗</a></label>
             <input type="text" name="cmc_key" value="{{ cmc }}" placeholder="Paste CMC Key here...">
 
-            <label style="margin-top:15px; display:block;">LiveCoinWatch Key <a href="https://www.livecoinwatch.com/tools/api" target="_blank" class="link">Get Key ↗</a></label>
+           <label style="margin-top:15px; display:block;">CoinGecko Key <a href="https://www.coingecko.com/en/developers/dashboard" target="_blank" class="get-key-link">Get Demo Key ↗</a></label>
+            <input type="text" name="cg_key" value="{{ cg }}" placeholder="Paste CG Key here...">
+
+            <label style="margin-top:15px; display:block;">LiveCoinWatch Key <a href="https://www.livecoinwatch.com/tools/api" target="_blank" class="get-key-link">Get Key ↗</a></label>
             <input type="text" name="lcw_key" value="{{ lcw }}" placeholder="Paste LCW Key here...">
 
-            <label style="margin-top:15px; display:block;">CoinRanking Key <a href="https://coinranking.com/api" target="_blank" class="link">Get Key ↗</a></label>
-            <input type="text" name="cr_key" value="{{ cr }}" placeholder="Paste CR Key here...">
         </div>
 
         <div class="card">
@@ -69,9 +70,9 @@
             <div class="setup-guide-box">
                 <strong style="color:var(--text-white); display:block; margin-bottom:10px;">📋 Instructions:</strong>
                 <ol style="margin:0; padding-left:20px; color:var(--text-dim); line-height: 1.6;">
-                    <li>Visit <a href="https://github.com/heisbuba/cryptovat" target="_blank" style="color:#3b82f6;text-decoration:underline;">GitHub</a> and copy the VTMR code.
+                    <li>Visit <a href="https://github.com/heisbuba/quantvat" target="_blank" style="color: var(--accent-green);text-decoration:underline;">GitHub</a> and copy the VTMR code.
                     </li>
-                    <li>Log in to <a href="https://coinalyze.net" target="_blank" style="color:#3b82f6;text-decoration:underline;">CoinAlyze.net</a>.
+                    <li>Log in to <a href="https://coinalyze.net" target="_blank" style="color: var(--accent-green);text-decoration:underline;">CoinAlyze.net</a>.
                     </li
                     <li>Create <strong>Custom Metrics</strong> → Name: <strong>VTMR</strong>.</li>
                     <li>Select Columns: Market Cap, Vol 24H, OI Change % 24H, Predicted Funding Rate (OI Weighted), VTMR.</li>

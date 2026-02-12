@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+{% block title %}Quant Diver - QuantVAT{% endblock %} 
+{% block description %}View data-driven quantitative analysis report of any crypto coin with advanced metrics. Good for quick overview of tokens data.{% endblock %} 
+{% block og_title %}Quant Diver - QuantVat{% endblock %} 
+{% block og_description %}View data-driven quantitative analysis report of any crypto coin with advanced metrics. Good for quick overview of tokens data.{% endblock %} 
+{% block keywords %}register, secure access, crypto dashboard, quantvat, trading tools, crypto quant{% endblock %} 
+{% block extra_css %}
+<style>
+    /* --- Header & Layout --- */
+    .quant-header { 
+        border: 1px solid #10b981; 
+        background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(0,0,0,0) 100%);
+        text-align: center; 
+        padding: 40px 20px; 
+        margin-bottom: 25px; 
+        border-radius: 12px;
+    }
+    .header-content { margin-bottom: 25px; }
+    .glow-text { color: #10b981; font-size: 2.2rem; margin: 0; text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+    .white { color: white; }
+    .subtitle { color: #888; font-size: 0.7rem; letter-spacing: 4px; font-weight: bold; margin-top: 10px; }
+
+    /* --- MODERN SEARCH BAR --- */
+    .search-container { 
+    position: relative; 
+    max-width: 600px; 
+    margin: 0 auto; 
+    z-index: 50; 
+    }
+
+    .search-wrapper { 
+    display: flex; 
+    align-items: center; 
+    background: #0b0e11; 
+    border: 1px solid var(--border); 
+    border-radius: 50px;             
+    padding: 7px 25px; 
+    transition: all 0.2s ease; 
+    height: 50px;
+    box-shadow: none;
+    }
+
+    .search-wrapper:focus-within { 
+    border-color: var(--accent-green); 
+    background: #111418;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15); 
+    transform: translateY(-1px);
+     }
+
+    .search-icon { 
+    color: var(--text-dim); 
+    margin-right: 15px; 
+    transition: color 0.2s; 
+    }
+
+    .search-wrapper:focus-within .search-icon { 
+    color: var(--accent-green); 
+    }
+
+    #token-input { 
+    background: transparent; 
+    border: none; 
+    color: white; 
+    width: 100%; 
+    outline: none; 
+    font-family: 'Inter', sans-serif; 
+    font-size: 1.1rem; 
+    font-weight: 500;
+    }
+
+    #token-input::placeholder { 
+    color: #475261; 
+    }
+
+/* --- RESULTS DROPDOWN--- */
+    .search-dropdown { 
+    position: absolute; 
+    top: 115%; 
+    left: 15px; 
+    right: 15px; 
+    width: auto;
+    background: var(--bg-dark); 
+    border: 1px solid var(--border); 
+    border-radius: 16px; 
+    display: none; 
+    max-height: 280px; 
+    overflow-y: auto;  
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
+    z-index: 100;
+    -webkit-overflow-scrolling: touch;
+    }
+
+   .search-dropdown::-webkit-scrollbar {
+    width: 4px;
+    }
+
+    .search-dropdown::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+    }
+
+    .res-item { 
+    padding: 14px 20px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    border-bottom: 1px solid var(--border); 
+    transition: 0.2s; 
+    }
+
+   .res-item:last-child { 
+    border-bottom: none; 
+}
+
+   .res-item:hover { 
+    background: rgba(16, 185, 129, 0.1); 
+    }
+    
+    /* --- Dashboard Grids --- */
+    .velocity-grid { grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; }
+    .panels-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+    
+    .mini-stats { background: rgba(255,255,255,0.03); text-align: center; padding: 15px; border-radius: 8px; }
+    .stats-val { font-size: 1.2rem; font-weight: bold; margin-top: 5px; }
+    
+    .stats-panel { padding: 25px; border-radius: 10px; }
+    .accent-border { border-left: 4px solid #10b981; }
+    .panel-tag { font-size: 0.75rem; font-weight: 900; color: #666; margin-bottom: 20px; letter-spacing: 1.5px; }
+    .green-text { color: #10b981; }
+    
+    .d-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; }
+    .mono { font-family: 'JetBrains Mono', monospace; color: #eee; }
+    .highlight { color: #10b981; font-weight: bold; }
+    .pos { color: #10b981 !important; } .neg { color: #ef4444 !important; }
+
+    .explainer-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .explainer-box { text-align: left; padding: 12px; font-size: 0.75rem; color: #999; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05); }
+    .explainer-box strong { color: #10b981; display: block; margin-bottom: 4px; }
+
+     /* --- ACTION DOCK --- */
+    .action-dock {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: -10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.2s;
+     }
+
+    .btn-action svg { 
+    width: 14px; 
+    height: 14px; 
+    
+    }
+
+    /* Sub-Branding Colors */
+    #link-cg { border-color: rgba(140, 198, 63, 0.3); }
+    #link-tv { border-color: rgba(41, 98, 255, 0.3); }
+
+    #link-cg:hover { color: #8CC63F; border-color: #8CC63F; background: rgba(140, 198, 63, 0.05); }
+    #link-tv:hover { color: #2962FF; border-color: #2962FF; background: rgba(41, 98, 255, 0.05); }
+    
+    /* --- Animation & Skeleton --- */
+    .skeleton-card { background: rgba(255,255,255,0.05); border-radius: 4px; animation: pulse 1.5s infinite; }
+    .mini { height: 80px; }
+    .tall { height: 250px; }
+    @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 0.6; } 100% { opacity: 0.3; } }
+
+    @@media (max-width: 768px) {
+    /* Main Stat Grid Tweak */
+    .velocity-grid { 
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+    }
+
+    /* 1H and 24H take 3 columns each (50% width) */
+    .velocity-grid .card:nth-child(1),
+    .velocity-grid .card:nth-child(2) {
+        grid-column: span 3;
+    }
+
+    /* 7D, 30D, and 1Y take 2 columns each (33% width) */
+    .velocity-grid .card:nth-child(3),
+    .velocity-grid .card:nth-child(4),
+    .velocity-grid .card:nth-child(5) {
+        grid-column: span 2;
+    }
+
+    /* Shrink the text slightly for the 3rd row to prevent overlap */
+    .velocity-grid .stats-val {
+        font-size: 1rem;
+    }
+
+    .action-dock { gap: 8px; }
+    .btn-action { padding: 8px 12px; flex: 1; justify-content: center; }
+    }
+    @keyframes materialize {
+    from { 
+        opacity: 0; 
+        transform: translateY(10px) scale(0.98); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+      }
+    }
+
+    #matrix-content {
+    display: none; 
+    animation: materialize 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                           }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container wide">
+    <section class="card quant-header">
+        <div class="header-content">
+            <h1 class="glow-text">DEEP <span class="white">DIVER</span></h1>
+            <p class="subtitle">QUANTITATIVE SPOT TOKENS VOLUMETRIC ANALYSIS ENGINE</p>
+        </div>
+        
+        <div class="search-container">
+    <div class="search-wrapper" id="search-box-container">
+        <svg class="search-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        
+        <input type="text" id="token-input" placeholder="Search Ticker (e.g. BTC)..." autocomplete="off">
+    </div>
+    
+    <div id="search-results" class="search-dropdown"></div>
+        </div>
+    </section>
+
+    <div id="skeleton-container" style="display:none; margin-top: 20px;">
+        <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+            <div class="skeleton-card mini"></div>
+            <div class="skeleton-card mini"></div>
+            <div class="skeleton-card mini"></div>
+            <div class="skeleton-card mini"></div>
+        </div>
+        <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 15px;">
+            <div class="skeleton-card tall"></div>
+            <div class="skeleton-card tall"></div>
+        </div>
+    </div>
+
+    <div id="matrix-content" style="display:none; animation: slideUp 0.4s ease;">
+
+    <div class="action-dock">
+    <a id="link-cg" href="#" target="_blank" class="btn-action">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#8CC63F" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.818c-5.422 0-9.818-4.396-9.818-9.818S6.578 2.182 12 2.182 21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/>
+            <path fill="#8CC63F" d="M17.008 7.538c-.25-.213-1.018-.735-1.922-.735-1.99 0-2.81 1.688-2.81 1.688s-.522.956-1.074.956c-.553 0-1.026-1.107-2.9-1.107-1.876 0-2.73 1.58-2.73 1.58s-1.875 3.328.72 6.703c1.94 2.52 4.49 2.19 4.49 2.19.784-.064 1.458-.61 2.05-1.127.42-.366 1.05-.224 1.342.23.23.36.08.835-.34 1.144-.81.597-1.81 1.106-3.05 1.106-2.95 0-5.27-2.22-6.52-3.84-2.26-2.94-1.29-6.93 1.95-8.24 1.84-.74 3.4.15 3.8.44.05-.33.25-.86.69-1.22.8-.66 2.08-.66 2.92 0 .44.35.63.89.68 1.22.4-.29 1.96-1.18 3.8-.44 3.24 1.31 4.21 5.3 1.95 8.24-.65.84-1.46 1.57-2.4 2.12-.39.23-.9.1-1.13-.29-.23-.39-.1-.9.29-1.13.73-.42 1.38-.99 1.9-1.66 1.76-2.29 1.09-5.1-1.13-6.58-1.28-.85-2.85-.45-3.52.09-.4.32-.6 1.04-.6 1.04l-.87-.45s-.16-.76-.6-1.11c-.67-.54-1.8-.82-2.74-.23zm-8.8 3.12c-.52.53-.45 1.38.16 1.83.6.45 1.47.38 1.99-.15.52-.53.45-1.38-.16-1.83-.6-.45-1.47-.38-1.99.15zm7.62.15c.52.53 1.39.6 1.99.15.61-.45.68-1.3.16-1.83-.52-.53-1.39-.6-1.99-.15-.61.45-.68 1.3-.16 1.83z"/>
+        </svg>
+        CoinGecko
+    </a>
+
+    <a id="link-tv" href="#" target="_blank" class="btn-action">
+        <svg viewBox="0 0 45 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M22.5 0C21.1193 0 20 1.11929 20 2.5V23.5C20 24.8807 21.1193 26 22.5 26H23.5C24.8807 26 26 24.8807 26 23.5V2.5C26 1.11929 24.8807 0 23.5 0H22.5ZM0 14C0 12.6193 1.11929 11.5 2.5 11.5H12.5C13.8807 11.5 15 12.6193 15 14V23.5C15 24.8807 13.8807 26 12.5 26H2.5C1.11929 26 0 24.8807 0 23.5V14ZM35 2C33.6193 2 32.5 3.11929 32.5 4.5V23.5C32.5 24.8807 33.6193 26 35 26H42.5C43.8807 26 45 24.8807 45 23.5V4.5C45 3.11929 43.8807 2 42.5 2H35Z" fill="currentColor"/>
+        </svg>
+        TradingView
+    </a>
+</div>
+      
+    <div class="grid velocity-grid">
+        <div class="card mini-stats"><small>1H CHG</small><div id="v-1h" class="mono stats-val">--</div></div>
+        <div class="card mini-stats"><small>24H CHG</small><div id="v-24h" class="mono stats-val">--</div></div>
+        <div class="card mini-stats"><small>7D CHG</small><div id="v-7d" class="mono stats-val">--</div></div>
+        <div class="card mini-stats"><small>30D CHG</small><div id="v-30d" class="mono stats-val">--</div></div>
+        <div class="card mini-stats"><small>1Y CHG</small><div id="v-yearly" class="mono stats-val">--</div></div>
+    </div>
+
+    <div class="grid panels-grid">
+        <div class="card stats-panel">
+            <div class="panel-tag">TOKEN DETAILS</div>
+            <div class="d-row"><span>PRICE</span><span class="mono highlight" id="v-price">--</span></div>
+            <div class="d-row"><span>MCAP</span><span class="mono" id="v-mcap">--</span></div>
+            <div class="d-row"><span>VOL 24H</span><span class="mono" id="v-vol">--</span></div>
+            <div class="d-row"><span>TOTAL SUPPLY</span><span class="mono" id="v-supply">--</span></div>
+        </div>
+      
+        <div class="card stats-panel accent-border">
+            <div class="panel-tag green-text">QUANT RATIOS</div>
+            <div class="d-row" title="Volume to Market Cap"><span>VTMR</span><span class="mono" id="v-vtmr">--</span></div>
+            <div class="d-row" title="Volume to Price Change"><span>VTPC</span><span class="mono" id="v-vtpc">--</span></div>
+        </div>
+    </div>
+
+    <div class="grid explainer-grid" style="margin-top: 15px;">
+        <div class="card mini-stats explainer-box">
+            <p><strong>VTMR:</strong> Volume to Market Cap Ratio. Measures trading activity relative to token's current size (marketcap).</p>
+        </div>
+        <div class="card mini-stats explainer-box">
+            <p><strong>VTPC:</strong> Volume to Price Change. Quantifies "Price Impact." Shows how much dollar volume is needed to move the price by 1%.</p>
+        </div>
+    </div>
+    </div>
+</div>
+
+<script>
+    const input = document.getElementById('token-input');
+    const results = document.getElementById('search-results');
+    const matrix = document.getElementById('matrix-content');
+    const skeleton = document.getElementById('skeleton-container');
+    let searchTimeout = null;
+
+    // Search Logic
+    input.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const q = e.target.value.trim();
+        
+        // Increased char limit to 3 to prevent searching for "b" or "bi"
+        if(q.length < 3) { results.style.display = 'none'; results.scrollTop = 0; return; }
+
+        // Increased debounce to 800ms to save API calls while typing
+        searchTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/search-tickers?q=${q}`);
+                const data = await res.json();
+                if(data && data.length > 0) {
+                    results.innerHTML = data.map(t => `
+                        <div class="res-item" onclick="dive('${t.id}', '${t.symbol}')">
+                            <img src="${t.thumb}">
+                            <div style="flex-grow:1">
+                                <span style="font-weight:bold; color:white;">${t.symbol.toUpperCase()}</span>
+                                <span style="color:#666; font-size:0.8rem; margin-left:8px;">${t.name}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    results.style.display = 'block';
+                } else { results.style.display = 'none'; }
+            } catch (e) { console.error(e); }
+        }, 800);
+    });
+
+    // Main Data Fetch (DIVE)
+    async function dive(id, symbol) {
+        results.style.display = 'none';
+        input.value = symbol.toUpperCase();
+        matrix.style.display = 'none';
+        skeleton.style.display = 'block';
+
+        try {
+            const res = await fetch(`/api/dive/${id}`);
+            const d = await res.json();
+
+            if(d.status === "success") {
+                // TOKEN DETAILS
+                document.getElementById('v-price').innerText = d.vitals.price;
+                document.getElementById('v-mcap').innerText = d.vitals.mcap;
+                document.getElementById('v-vol').innerText = d.vitals.vol24h;
+                document.getElementById('v-supply').innerText = d.supply.total;
+                
+                // QUANT RATIOS
+                document.getElementById('v-vtmr').innerText = d.ratios.vtmr;
+                document.getElementById('v-vtpc').innerText = d.ratios.vtpc;
+                
+                // PRICE CHANGE
+                updateVel('v-1h', d.velocity.h1); // <--- NEW
+                updateVel('v-24h', d.velocity.h24);
+                updateVel('v-7d', d.velocity.d7);
+                updateVel('v-30d', d.velocity.m1);
+                updateVel('v-yearly', d.velocity.y1 || d.velocity.yearly);
+
+                // LINKS
+                if(d.links) {
+                    document.getElementById('link-cg').href = d.links.cg;
+                    document.getElementById('link-tv').href = d.links.tv;
+                }
+                
+                skeleton.style.display = 'none';
+                matrix.style.display = 'block';
+            } else {
+                alert("Error: " + d.message);
+                skeleton.style.display = 'none';
+            }
+        } catch (err) {
+            console.error(err);
+            skeleton.style.display = 'none';
+        }
+    }
+
+    function updateVel(id, val) {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.innerText = val || "--";
+        
+        if (val && val.toString().includes('-')) {
+            el.className = 'mono stats-val neg';
+        } else if (val && val !== "--") {
+            el.className = 'mono stats-val pos';
+        } else {
+            el.className = 'mono stats-val';
+        }
+    }
+
+// deep_diver.html - Bottom of <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const ticker = params.get('ticker');
+    
+    if (ticker) {
+        const inputField = document.getElementById('token-input');
+        if (inputField) {
+            inputField.value = ticker.toUpperCase();
+            // Trigger the search dropdown so the user can select
+            const event = new Event('input', { bubbles: true });
+            inputField.dispatchEvent(event);
+            inputField.focus();
+        }
+    }
+});
+</script>
+{% endblock %}

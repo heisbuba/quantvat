@@ -1,22 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Dashboard - CryptoVAT{% endblock %} 
-{% block description %}Hey fellow trader / analyst, welcome to CryptoVAT Dashboard. Generate your reports.
-{% endblock %} 
-{% block og_title %}Dashboard - CryptoVAT{% endblock %} 
-{% block og_description %}Hey fellow trader / analyst, welcome to CryptoVAT Dashboard. Generate your reports.{% endblock %} 
+{% block title %}Dashboard - QuantVAT{% endblock %} 
+{% block description %}Hey fellow trader / analyst, welcome to QuantVAT Dashboard. Generate your reports.{% endblock %} 
+{% block og_title %}Dashboard - QuantVAT{% endblock %} 
+{% block og_description %}Hey fellow trader / analyst, welcome to QuantVAT Dashboard. Generate your reports.{% endblock %} 
 {% block keywords %}register, secure access, crypto dashboard, cryptovat, trading tools{% endblock %} 
 {% block extra_css %}
- <style>
-
-/* --- MAIN DASHBOARD GRID --- */
-
+<style>
+/* --- Layout & Grid --- */
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    margin-top: 20px;
+    margin-top: 15px;
 }
 
+/* --- Action Buttons --- */
 .btn {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -32,7 +30,6 @@
     align-items: center;
     gap: 8px;
     width: auto;
-    margin-top: 0;
 }
 
 .btn svg {
@@ -41,29 +38,13 @@
     margin-bottom: 5px;
 }
 
-/* Button Color Variants */
-.btn-spot {
-    border-color: var(--accent-blue);
-    color: var(--accent-blue);
-}
-
-.btn-futures {
-    border-color: var(--accent-orange);
-    color: var(--accent-orange);
-}
-
-.btn-adv {
+/* Accent color for scan actions */
+.btn-spot, .btn-futures, .btn-adv, .btn-report {
     border-color: var(--accent-green);
     color: var(--accent-green);
 }
 
-.btn-report {
-    border-color: var(--accent-purple);
-    color: var(--accent-purple);
-}
-
-/* --- TERMINAL / LOG DISPLAY --- */
-
+/* --- Terminal Console --- */
 .terminal {
     background: #000;
     padding: 15px;
@@ -71,28 +52,17 @@
     border: 1px solid var(--border);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
-    color: var(--text-dim);
+    color: #cbd5e1;
     height: 200px;
     overflow-y: auto;
     margin-top: 20px;
 }
 
-.log-line {
-    margin-bottom: 4px;
-}
+.log-line { margin-bottom: 4px; }
+.log-line.highlight { color: #fff; border-left: 2px solid var(--accent-green); padding-left: 5px; }
+.log-line.error { color: #f6465d; }
 
-.log-line.highlight {
-    color: #fff;
-    border-left: 2px solid var(--accent-green);
-    padding-left: 5px;
-}
-
-.log-line.error {
-    color: #f6465d;
-}
-
-/* --- PROGRESS BAR --- */
-
+/* --- Progress Tracking --- */
 .progress-container {
     margin-top: 20px;
     display: flex;
@@ -110,24 +80,165 @@
 
 .progress-fill {
     height: 100%;
-    width: 0%; /* Dynamically set by JavaScript */
+    width: 0%;
     background: var(--accent-green);
-    transition: width 0.3s;
+    transition: width 0.3s ease;
 }
 
-/* --- ADMIN --- */
+/* --- Navigation & Filters --- */
+.filter-nav-container {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 5px 20px 15px 5px;
+    margin-top: 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to right, black 98%, transparent 100%);
+    mask-image: linear-gradient(to right, black 98%, transparent 100%);
+}
 
-.admin {
-    text-align: center;
+.filter-nav-container::-webkit-scrollbar { 
+    display: none; 
+}
+
+.nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: 0.2s;
+    text-decoration: none;
+    flex: 0 0 auto;
+}
+
+.nav-item:hover { 
+    border-color: var(--accent-green); 
+    background: rgba(16, 185, 129, 0.05); 
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
     padding: 20px;
-    color: var(--text-dim);
-    font-size: 0.9rem;
 }
- </style>
+
+.modal-overlay.is-active {
+    display: flex;
+}
+
+.modal-content {
+    background: #151a1e;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 340px;
+    width: 100%;
+    box-sizing: border-box;
+    animation: modalPopIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes modalPopIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+    margin: 0 0 20px 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 12px;
+    margin-bottom: 20px;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.full-width { 
+    grid-column: 1 / -1; 
+}
+
+.filter-field label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.filter-field input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #0b0e11;
+    border: 1px solid var(--border);
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+}
+
+.modal-actions {
+    display: flex !important;
+    gap: 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    margin-top: 10px;
+}
+
+.btn-modal {
+    flex: 1;
+    padding: 12px 5px;
+    font-size: 0.8rem;
+    border-radius: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.btn-save { 
+    background: var(--accent-green); 
+    color: #000;
+    border: none;
+}
+
+.btn-reset { 
+    background: rgba(239, 68, 68, 0.1); 
+    border: 1px solid var(--accent-red) !important; 
+    color: var(--accent-red); 
+}
+</style>
+
 {% endblock %}
 
 {% block content %}
-
 <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -139,95 +250,247 @@
       {% endif %}
     {% endwith %}
 
-    <div class="grid">
-        <button class="btn btn-spot" onclick="trigger('{{ url_for('tasks.run_spot') }}')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-            SPOT SCAN
-        </button>
-        <a class="btn btn-futures" href="{{ url_for('tasks.get_futures_data') }}">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            GET FUTURES
-        </a>
-        <button class="btn btn-adv" onclick="trigger('{{ url_for('tasks.run_advanced') }}')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            ADVANCED
-        </button>
-        <a class="btn btn-report" href="{{ url_for('main.reports_list') }}">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            REPORTS
-        </a>
+    <div class="filter-nav-container">
+    <button class="nav-item" onclick="toggleModal('filterModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="2" y1="14" x2="6" y2="14"></line><line x1="10" y1="8" x2="14" y2="8"></line><line x1="18" y1="16" x2="22" y2="16"></line></svg>
+        Filters
+    </button>
+    <a href="{{ url_for('main.deep_diver') }}" class="nav-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Deep Diver
+    </a>
+      <a href="{{ url_for('main.trading_journal') }}" class="nav-item">
+     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            <line x1="8" y1="6" x2="16" y2="6"></line>
+            <line x1="8" y1="10" x2="16" y2="10"></line>
+            <line x1="8" y1="14" x2="16" y2="14"></line>
+        </svg>
+    Journal
+</a>
     </div>
+  
+    <!-- Main Grid Buttons -->
+    <div class="grid">
+    <button class="btn btn-spot" onclick="trigger('{{ url_for('tasks.run_spot') }}')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        SPOT SCAN
+    </button>
+    
+    <a class="btn btn-futures" href="{{ url_for('tasks.get_futures_data') }}">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        GET FUTURES
+    </a>
+
+    <button class="btn btn-adv" onclick="trigger('{{ url_for('tasks.run_advanced') }}')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        ADVANCED
+    </button>
+
+    <a class="btn btn-report" href="{{ url_for('main.reports_list') }}">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        REPORTS
+    </a>
+</div>
 
     <div class="progress-container">
         <span style="font-size:0.8rem; color:var(--text-dim);">STATUS</span>
         <span id="percent" style="font-size:0.8rem; font-weight:bold; color:var(--accent-green);">0%</span>
     </div>
-    <div class="progress-bar">
-        <div id="bar" class="progress-fill"></div>
-    </div>
+    <div class="progress-bar"><div id="bar" class="progress-fill"></div></div>
+    <div class="terminal" id="term"><div class="log-line">> System Ready...</div></div>
 
-    <div class="terminal" id="term">
-        <div class="log-line">> System Ready...</div>
-    </div>
-</div>
-
-<div class="admin">
     {% if is_admin %}
-    <div style="margin-top: 15px; display: flex; justify-content: center;">
-        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-links" style="width: auto; padding: 10px 20px; font-size: 0.8rem; margin: 0;">ADMIN DASHBOARD</a>
+    <div style="margin-top: 25px; display: flex; justify-content: center;">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.8rem; border-color: var(--border); color: var(--text-dim);">ADMIN DASHBOARD</a>
     </div>
     {% endif %}
 </div>
 
+<div id="filterModal" class="modal-overlay" onclick="handleOverlayClick(event, 'filterModal')">
+    <div class="modal-content">
+        <h3 class="modal-header">Customize Filters</h3>
+        <div class="filter-grid">
+        <div class="filter-field">
+    <label>Min Spot VTMR</label>
+    <input type="number" id="min_vtmr" step="0.01" 
+           value="{{ filters.min_vtmr | default('0.5') }}">
+</div>
+
+<div class="filter-field">
+    <label>Max Spot VTMR</label>
+    <input type="number" id="max_vtmr" step="0.01" 
+           value="{{ filters.max_vtmr | default('199.0') }}">
+</div>
+
+<div class="filter-field full-width">
+    <label>Spot LargeCap VTMR</label>
+    <input type="number" id="min_largecap_vtmr" step="0.01" 
+           value="{{ filters.min_largecap_vtmr | default('0.5') }}">
+</div>
+
+<div class="filter-field">
+    <label>Min Futures VTMR</label>
+    <input type="number" id="min_f_vtmr" step="0.01" 
+           value="{{ filters.min_f_vtmr | default('0.5') }}">
+</div>
+
+<div class="filter-field">
+    <label>Max Futures VTMR</label>
+    <input type="number" id="max_f_vtmr" step="0.01" 
+           value="{{ filters.max_f_vtmr | default('399.0') }}">
+</div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal btn-reset" onclick="resetFilters('filterModal')">RESET</button>
+            <button class="btn-modal btn-save" onclick="saveFilters()">APPLY</button>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Declare all global states
     let busy = false;
     let lastIdx = 0;
-    
+    let logTimeout = null;
+
     function trigger(url) {
         if (busy) return;
         busy = true;
-        
-        document.getElementById('term').innerHTML = '<div class="log-line">> Starting task...</div>';
+
+        // Reset Terminal & Progress
+        const term = document.getElementById('term');
+        term.innerHTML = '<div class="log-line">> Starting task...</div>';
         lastIdx = 0;
         document.getElementById('bar').style.width = '5%';
         document.getElementById('percent').innerText = '5%';
-        
-        fetch(url).then(r => r.json()).then(() => {
-            poll();
-            logs();
-        }).catch(() => {
-            busy = false;
-        });
-    }
-    
-    function poll() {
-        fetch('{{ url_for("tasks.progress") }}').then(r => r.json()).then(data => {
-            document.getElementById('bar').style.width = data.percent + '%';
-            document.getElementById('percent').innerText = data.percent + '%';
-            if (data.status === 'active') {
-                setTimeout(poll, 800);
-            } else {
+
+        // Clear any previous log loop
+        if (logTimeout) clearTimeout(logTimeout);
+
+        fetch(url)
+            .then(r => r.json())
+            .then(() => {
+                poll();
+                logs();
+            })
+            .catch(() => {
                 busy = false;
+                term.innerHTML += '<div class="log-line error">> Failed to initiate task.</div>';
+            });
+    }
+
+    function poll() {
+        fetch('{{ url_for("tasks.progress") }}')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('bar').style.width = data.percent + '%';
+                document.getElementById('percent').innerText = data.percent + '%';
+                
+                if (data.percent < 100 && data.status !== 'error') {
+                    setTimeout(poll, 800);
+                } else {
+                    busy = false; 
+                }
+            })
+            .catch(() => { busy = false; });
+    }
+
+    function logs() {
+        fetch('{{ url_for("tasks.logs_chunk") }}?last=' + lastIdx)
+            .then(r => r.json())
+            .then(data => {
+                const term = document.getElementById('term');
+                if (data.logs.length) {
+                    lastIdx = data.last_index;
+                    data.logs.forEach(log => {
+                        const div = document.createElement('div');
+                        div.className = 'log-line ' + (log.includes('Error') ? 'error' : log.includes('Found') ? 'highlight' : '');
+                        div.innerText = '> ' + log;
+                        term.appendChild(div);
+                    });
+                  
+                    term.scrollTop = term.scrollHeight;
+                }
+                
+                // Keep logging if busy OR if there's still more data coming
+                if (busy || data.logs.length > 0) {
+                    logTimeout = setTimeout(logs, 1000);
+                }
+            });
+    }
+
+    function saveFilters() {
+        const saveBtn = document.querySelector('.btn-save');
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'SAVING...';
+
+        const filterData = {
+            min_vtmr: document.getElementById('min_vtmr').value,
+            max_vtmr: document.getElementById('max_vtmr').value,
+            min_largecap_vtmr: document.getElementById('min_largecap_vtmr').value,
+            min_f_vtmr: document.getElementById('min_f_vtmr').value,
+            max_f_vtmr: document.getElementById('max_f_vtmr').value
+        };
+
+        fetch('/save-filters', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}' // CSRF Safety
+            },
+            body: JSON.stringify(filterData)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success') {
+                toggleModal('filterModal');
+                const term = document.getElementById('term');
+                term.innerHTML += '<div class="log-line highlight">> Custom filters applied and saved.</div>';
+                term.scrollTop = term.scrollHeight;
             }
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'APPLY';
         });
     }
-    
-    function logs() {
-        fetch('{{ url_for("tasks.logs_chunk") }}?last=' + lastIdx).then(r => r.json()).then(data => {
-            if (data.logs.length) {
-                lastIdx = data.last_index;
-                data.logs.forEach(log => {
-                    let div = document.createElement('div');
-                    div.className = 'log-line ' + (log.includes('Error') ? 'error' : log.includes('Found') ? 'highlight' : '');
-                    div.innerText = '> ' + log;
-                    document.getElementById('term').appendChild(div);
-                });
-                document.getElementById('term').scrollTop = 9999;
-            }
-            if (busy) {
-                setTimeout(logs, 1000);
-            }
-        });
+
+function resetFilters() {
+    if(!confirm("Revert to system defaults?")) return;
+
+    fetch('/reset-filters', { 
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === 'success') {
+            // MANUALLY SYNC UI BOXES TO DEFAULTS
+            document.getElementById('min_vtmr').value = '0.5';
+            document.getElementById('max_vtmr').value = '199.0';
+            document.getElementById('min_largecap_vtmr').value = '0.5';
+            document.getElementById('min_f_vtmr').value = '0.5';
+            document.getElementById('max_f_vtmr').value = '399.0';
+            
+            toggleModal('filterModal');
+            
+            const term = document.getElementById('term');
+            term.innerHTML += '<div class="log-line highlight">> Filters reset to defaults.</div>';
+            term.scrollTop = term.scrollHeight;
+        }
+    });
+}
+
+    function toggleModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.toggle('is-active');
+    }
+
+    function handleOverlayClick(e, id) {
+        if (e.target.id === id) toggleModal(id);
     }
 </script>
+{% include 'includes/partials/pwa_prompt.html' %}
 {% endblock %}

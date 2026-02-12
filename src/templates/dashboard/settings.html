@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Settings - CryptoVAT{% endblock %} 
+{% block title %}Settings - QuantVAT{% endblock %} 
 {% block description %}Hey fellow trader / analyst, welcome to settings page. Update your account or factory reset it.
 {% endblock %} 
-{% block og_title %}Settings - CryptoVAT{% endblock %} 
+{% block og_title %}Settings - QuantVAT{% endblock %} 
 {% block og_description %}Hey fellow trader / analyst, welcome to settings page. Update your account or factory reset it.{% endblock %} 
 {% block keywords %}register, secure access, crypto dashboard, cryptovat, trading tools{% endblock %} 
 {% block extra_css %}
@@ -152,12 +152,12 @@
             
             <label>CoinMarketCap Key</label>
             <input type="text" name="cmc_key" value="{{ cmc }}" required>
+          
+            <label style="margin-top:10px; display:block;">CoinGecko Key</label>
+            <input type="text" name="cg_key" value="{{ cg }}" required>
             
             <label style="margin-top:10px; display:block;">LiveCoinWatch Key</label>
             <input type="text" name="lcw_key" value="{{ lcw }}" required>
-            
-            <label style="margin-top:10px; display:block;">CoinRanking Key</label>
-            <input type="text" name="cr_key" value="{{ cr }}" required>
             
             <label style="margin-top:10px; display:block;">VTMR URL</label>
             <input type="text" name="vtmr_url" value="{{ vtmr }}" required>
@@ -166,6 +166,44 @@
         </div>
     </form>
 
+  <form action="{{ url_for('main.save_ai_key') }}" method="POST">
+    <input type="hidden" name="source" value="settings">
+    <div class="card">
+        <h2 style="color: var(--accent-green);">AI Auditor Config</h2>
+        <p style="color:#848e9c; font-size:0.9rem; margin-bottom:15px;">
+            Provide your <strong>Google Gemini Flash API key</strong> to enable deep, blunt and honest analysis of your selected trading journal.
+        </p>
+        
+        <label>Gemini Api Key</label> <a href="https://aistudio.google.com/" target="_blank" class="get-key-link">Get Key ↗</a>
+        <input type="text" name="api_key" 
+               value="{{ user_settings.gemini_key if user_settings and user_settings.gemini_key else '' }}" 
+               placeholder="Optional: Paste key here..." required>
+      
+        <button type="submit" class="btn btn-green">UPDATE SETTING</button>
+        
+    </div>
+</form>
+  
+    <div class="card">
+    <h2 style="color: var(--accent-green);">Cloud Storage</h2>
+    <p style="color:#848e9c; font-size:0.9rem; margin-bottom:15px;">
+        Manage your Google Drive connection for automated Trading Journal syncing.
+    </p>
+
+    {% if drive_linked %}
+        <form action="{{ url_for('tasks.google_disconnect') }}" method="POST">
+            <button type="submit" class="btn btn-red">
+                DISCONNECT G-DRIVE AUTH
+            </button>
+        </form>
+    {% else %}
+        <a href="{{ url_for('tasks.google_login') }}" class="btn btn-green" style="text-decoration: none; display: block; text-align: center;">
+            CONNECT GOOGLE DRIVE
+        </a>
+    {% endif %}
+</div>
+
+  
     <div class="card" style="border-color: var(--accent-red); background: rgba(246,70,93,0.05);">
         <h2 style="color:var(--accent-red); margin-top:0;">⚠️ Danger Zone</h2>
         <p style="font-size:0.85rem; color:#848e9c;">This will delete all your saved API keys and VTMR URL, returning you to the Setup Wizard.</p>
@@ -179,7 +217,7 @@
         <span class="modal-icon">⚠️</span>
         <div class="modal-title">Are you absolutely sure?</div>
         <div class="modal-text">
-            This action cannot be undone. All your saved API keys and configurations will be permanently deleted.
+            This action cannot be undone. All your saved API keys configuration and AI Auditor memory will be permanently deleted.
         </div>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModal()">CANCEL</button>
