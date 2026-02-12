@@ -19,7 +19,9 @@ except ImportError:
 # --- Constants ---
 STABLECOINS = {
     'USDT', 'USDC', 'BUSD', 'DAI', 'BSC-USD', 'USD1', 'CBBTC', 'WBNB', 'WETH',
-    'UST','SBUSDT', 'TUSD', 'USDP', 'USDD', 'FRAX', 'GUSD', 'LUSD', 'FDUSD'
+    'RLUST','USDE','PYUSD','WBTC','USDT0','SBUSDT', 'TUSD', 'USDP', 'USDON', 'USDD', 
+    'FRAX', 'JUPUSD', 'MSUSD', 'GUSD', 'LUSD', 'USDC.E', 'BVUSDC', 'WAETHUSDC', 
+    'WAETHUSDT','CRVUSD','VBUSDC', 'MSETH', 'FXUSD', 'USDCV', 'FDUSD'
 }
 
 FIREBASE_WEB_API_KEY = os.environ.get("FIREBASE_API_KEY")
@@ -72,7 +74,7 @@ def update_user_keys(uid, data):
 
 def is_user_setup_complete(uid):
     keys = get_user_keys(uid)
-    required = ["CMC_API_KEY", "LIVECOINWATCH_API_KEY", "COINRANKINGS_API_KEY", "COINALYZE_VTMR_URL"]
+    required = ["CMC_API_KEY", "COINGECKO_API_KEY", "LIVECOINWATCH_API_KEY", "COINALYZE_VTMR_URL"]
     for k in required:
         if k not in keys or not keys[k] or "CONFIG_" in str(keys[k]):
             return False
