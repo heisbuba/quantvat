@@ -1,58 +1,59 @@
 {% extends "base.html" %}
-{% block title %}Reports - CryptoVAT{% endblock %} 
-{% block description %}Hey fellow trader / analyst, welcome to CryptoVAT analysis reports page. View and download your cross-market reports.{% endblock %} 
-{% block og_title %}Reports - CryptoVAT{% endblock %} 
-{% block og_description %}Hey fellow trader / analyst, welcome to CryptoVAT analysis reports page. View and download your cross-market reports.{% endblock %} 
-{% block keywords %}register, secure access, crypto dashboard, cryptovat, trading tools{% endblock %} 
+{% block title %}Reports - QuantVAT{% endblock %} 
+{% block description %}Hey fellow trader / analyst, welcome to QuantVAT analysis reports page. View and download your cross-market reports.{% endblock %} 
+{% block og_title %}Reports - QuantVAT{% endblock %} 
+{% block og_description %}Hey fellow trader / analyst, welcome to QuantVAT analysis reports page. View and download your cross-market reports.{% endblock %} 
+{% block keywords %}register, secure access, crypto dashboard, quantvat, trading tools{% endblock %} 
 {% block extra_css %}
 <style>
     /* --- GENERAL LAYOUT --- */
-    body { 
-      background: #0b0e11; 
-      color: #eaecef; 
-      font-family: 'Inter', sans-serif; 
-    }
-  
     .container { 
+      width: 90%;
       max-width: 600px; 
-      margin: 30px auto;
+      margin: 40px auto;
+      box-sizing: border-box;
     }
   
     h1 { 
       text-align: center; 
-      color: #9333ea; 
-      margin-bottom: 30px; }
+      color: var(--accent-green, #10b981); 
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 30px; 
+    }
 
     /* --- FILE CARD --- */
     .file-item { 
-        background: #151a1e; 
-        padding: 15px 20px; 
+        background: var(--bg-card, #1e252a); 
+        padding: 18px 20px; 
         border-radius: 12px; 
-        border: 1px solid #2b3139; 
+        border: 1px solid var(--border, #2b3139); 
         margin-bottom: 12px; 
         display: flex; 
         justify-content: space-between; 
         align-items: center; 
         transition: all 0.2s ease; 
         position: relative; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    .file-item:hover { 
-        border-color: #9333ea; 
-        background: #1a2026; 
-        transform: translateX(5px);
-    }
-    .file-item:has(.menu-checkbox:checked) {
+  
+   .file-item:has(.menu-checkbox:checked) {
     z-index: 50;
+  }
+
+    .file-item:hover { 
+        border-color: var(--accent-green, #10b981); 
+        transform: translateX(5px);
     }
 
     /* --- FILENAME --- */
     .filename { 
-        font-family: monospace; 
-        font-size: 0.9rem; 
-        color: #eaecef; 
-        word-break: break-all; 
-        margin-right: 15px; 
-        flex: 1; 
+    font-family: monospace; 
+    font-size: 0.9rem; 
+    color: #eaecef; 
+    word-break: break-all; 
+    margin-right: 15px; 
+    flex: 1; 
     }
 
     /* --- SPLIT BUTTON COMPONENT --- */
@@ -60,45 +61,45 @@
         position: relative;
         display: inline-flex;
         vertical-align: middle;
-        flex-shrink: 0; /* Prevents button from being squashed */
+        flex-shrink: 0;
     }
 
-    /* 1. Main View Button */
     .btn-main {
-        background: #9333ea;
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 6px 0 0 6px; 
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-decoration: none;
-        border: 1px solid #9333ea;
-        transition: background 0.2s;
-        z-index: 2;
+    background: var(--accent-green, #10b981);
+    color: #000 !important; 
+    padding: 8px 16px;
+    border-radius: 6px 0 0 6px; 
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--accent-green, #10b981);
+    transition: background 0.2s;
+    z-index: 2;
     }
+
     .btn-main:hover {
-        background: #7e22ce;
-        box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+        background: #059669; 
+        border-color: #059669;
     }
 
-    /* 2. Arrow Trigger */
     .btn-arrow {
-        background: #9333ea;
-        color: #fff;
-        padding: 8px 10px;
-        border-radius: 0 6px 6px 0;
-        border: 1px solid #9333ea;
-        border-left: 1px solid rgba(255,255,255,0.3);
-        cursor: pointer;
-        font-size: 0.75rem;
-        transition: background 0.2s;
-        outline: none;
-    }
-    .btn-arrow:hover, .btn-arrow:focus {
-        background: #7e22ce;
+    background: var(--accent-green, #10b981);
+    color: #000;
+    padding: 8px 10px;
+    border-radius: 0 6px 6px 0;
+    border: 1px solid var(--accent-green, #10b981);
+    border-left: 1px solid rgba(0,0,0,0.2);
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: background 0.2s;
+    outline: none;
     }
 
-    /* 3. Dropdown Menu */
+    .btn-arrow:hover, .btn-arrow:focus {
+        background: #059669;
+    }
+
+    /* --- DROPDOWN MENU --- */
     .dropdown-menu {
         position: absolute;
         top: 100%;
@@ -115,64 +116,108 @@
         transform: translateY(-10px);
         transition: all 0.2s ease;
     }
-
-    /* 4. Interaction */
-
+  
     .menu-checkbox:checked ~ .dropdown-menu {
         opacity: 1;
         visibility: visible;
-        transform: translateY(0); }
-   .menu-checkbox:checked + .btn-arrow {
-      background: #7e22ce; }
+        transform: translateY(0); 
+    }
   
-    /* Dropdown Items */
     .dropdown-item {
         display: block;
-        padding: 10px 15px;
+        padding: 12px 15px;
         color: #eaecef;
         text-decoration: none;
         font-size: 0.85rem;
         transition: background 0.2s;
         display: flex;
         align-items: center;
+        font-weight: 500;
     }
+
     .dropdown-item:hover {
-        background: #2b3139;
-        color: #fff;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--accent-green, #10b981);
     }
-    .icon-dl { margin-right: 8px; color: #60a5fa; }
+
+    .delete-item {
+        color: #ff4d4d !important; /* Overriding the default text color */
+    }
+
+    .delete-item:hover {
+        background: rgba(255, 77, 77, 0.1) !important; /* Specific red tint for hover */
+      }
+  
+    .icon-dl { 
+        margin-right: 8px; 
+        color: var(--accent-green, #10b981); 
+    }
+
+    icon-delete { 
+        margin-right: 8px; 
+        color: #ef4444; 
+      }
+
+    /* Mobile Adjustment */
+    @media (max-width: 480px) {
+        .container {
+            width: 90%;
+            margin-top: 20px;
+            padding: 0;
+        }
+        .file-item {
+            padding: 15px;
+        }
+        h1 { font-size: 1.4rem; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="padding:15px; margin-bottom:20px; border-radius:8px; font-weight:bold; background:{{ 'rgba(14,203,129,0.15)' if category == 'success' else 'rgba(246,70,93,0.15)' }}; color:{{ '#0ecb81' if category == 'success' else '#f6465d' }}; border:1px solid {{ '#0ecb81' if category == 'success' else '#f6465d' }};">
+              {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  
     <h1>📄 Analysis Reports</h1>
     
     {% if report_files %}
         {% for f in report_files %}
-            <div class="file-item">
-                <span class="filename">{{ f }}</span>
-                
-                <div class="split-btn">
-    <a href="{{ url_for('main.serve_report', filename=f) }}" target="_blank" class="btn-main">VIEW</a>
+      <div class="file-item" id="file-row-{{ loop.index }}">
+    <span class="filename">{{ f }}</span>
+    
+    <div class="split-btn">
+        <a href="{{ url_for('main.serve_report', filename=f) }}" class="btn-main">VIEW</a>
 
-    <input type="checkbox" id="toggle-{{ loop.index }}" class="menu-checkbox" style="display: none;">
-    <label for="toggle-{{ loop.index }}" class="btn-arrow">▼</label>
+        <input type="checkbox" id="toggle-{{ loop.index }}" class="menu-checkbox" style="display: none;">
+        <label for="toggle-{{ loop.index }}" class="btn-arrow">▼</label>
 
-    <div class="dropdown-menu">
-        <a href="{{ url_for('main.serve_report', filename=f, dl='1') }}" class="dropdown-item">
-            <span class="icon-dl">⬇</span> Download
-        </a>
+        <div class="dropdown-menu">
+            <a href="{{ url_for('main.serve_report', filename=f, dl='1') }}" class="dropdown-item">
+                <span class="icon-dl">⬇</span> Download
+            </a>
+            
+            <a href="javascript:void(0);" 
+               class="dropdown-item delete-item" 
+               onclick="ajaxDelete('{{ f }}', 'file-row-{{ loop.index }}')">
+                <span class="icon-delete">🗑️ </span> Delete
+            </a>
+        </div>
     </div>
 </div>
-            </div>
-        {% endfor %}
+  {% endfor %}
     {% else %}
         <p style="text-align:center; color:#848e9c; margin-top: 40px;">No reports found yet</p>
     {% endif %}
     
 </div>
-<!-- Simple Js For Interactive Buttons -->
+<!-- Interactive Buttons -->
 <script>
     document.addEventListener('change', function(e) {
         if (e.target.classList.contains('menu-checkbox') && e.target.checked) {
@@ -191,5 +236,33 @@
             });
         }
     });
+ 
+  function ajaxDelete(filename, elementId) {
+    if (!confirm('Are you sure you want to Permanently delete this report?')) return;
+
+    fetch(`/reports/delete/${filename}`, {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => {
+        if (response.ok) {
+            const row = document.getElementById(elementId);
+            //  Slide out and fade
+            row.style.transition = 'all 0.3s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(30px)';
+            
+            setTimeout(() => {
+                row.remove();
+                // If no reports left, refresh to show the "No reports" message
+                if (document.querySelectorAll('.file-item').length === 0) {
+                    window.location.reload();
+                }
+            }, 300);
+        } else {
+            alert('Delete failed. Please try again.');
+        }
+    });
+  }
 </script>
 {% endblock %}
