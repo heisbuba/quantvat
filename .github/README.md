@@ -1,6 +1,6 @@
-# Crypto Volume Analysis Toolkit (CryptoVAT)
+# Quantitative Crypto Volume Analysis Toolkit (QuantVAT)
 
-**A powerful web-based suite designed for crypto analysts and traders.** It tracks high-volume tokens across the last 24 hours, performing cross-market analysis using integrated Spot and Futures data. Generate professional, data-driven PDF reports directly in your browser with zero setup required.
+**Quantitative Crypto Volume Analysis Toolkit is an ecosystem built for data-driven traders.** It tracks volumetric activity, performing cross-market analysis by fusing Spot and Futures data. In addition, it features the Deep Diver Engine for spot analysis and a semi-automated Trading Journal with blunt AI auditing.
 
 
 # **Key Features**
@@ -18,7 +18,7 @@
 
 # **Setup Guide**
 
-- Launch the [Live App Here](https://huggingface.co/spaces/heisbuba/cryptovat).
+- Launch the [Live App Here](https://heisbuba-quantvat.hf.space).
 - Create an account and log in.
 - Obtain and enter your API keys in the **Setup Wizard**.
 
@@ -44,7 +44,7 @@
 
 # ⚖️ **Disclaimer**
 
-CryptoVAT is for research and educational purposes only. It does not provide financial advice, trading signals, or investment recommendations. All data analysis should be verified independently.
+QuantVAT is for research and educational purposes only. It does not provide financial advice, trading signals, or investment recommendations. All data analysis should be verified independently.
 
 # **Contribute**
 
@@ -58,7 +58,8 @@ This project is MIT Licensed — you are free to use, modify, and build upon it.
 
 # **Changelog**
 
-- **v4.1**: Improved Spot Volume Tracker Data Accuracy with mandatoy CoinGecko Demo API configuration coming up - *Jan 11, 2026*
+- **v4.5**: Major UI/UX fix, Integration of semi-automated AI Powered Trading Journal, Deep Diver Engine, and PWA support - *Feb 12, 2026* 
+- **v4.1**: Improved Spot Volume Tracker Data Accuracy with mandatoy CoinGecko Demo API configuration - *Jan 11, 2026*
 - **v4.0**: Cloud Edition (Hugging Face) with Firebase integration added and major logic and UI overhaul - *Dec 25, 2025*.
 - **v3.0**: Local Web-UI added.
 - **v2.0**: Integrated OISS and explainer added - *Dec. 02, 2025*.
