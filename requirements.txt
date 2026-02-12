@@ -6,3 +6,7 @@ pypdf==6.4.0
 lxml
 gunicorn
 playwright
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+google-genai
