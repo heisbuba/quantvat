@@ -1,1 +1,125 @@
+<script>
+  // PWA Install Injector
+(function() {
+    'use strict';
+    const performInjection = () => {
+        let deferredPrompt = null;
+        const lastDismissed = localStorage.getItem('pwa_dismissed_at');
+        const cooldown = 3 * 24 * 60 * 60 * 1000; 
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isStandalone || (lastDismissed && (Date.now() - lastDismissed < cooldown))) {
+            return; 
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(injectPwaResources, 2000);
+        });
+
+        if (isIOS) {
+            setTimeout(injectPwaResources, 2000);
+        }
+
+        /**
+         * Injects CSS and HTML UI components into the DOM
+         */
+        function injectPwaResources() {
+            if (document.getElementById('pwa-mini-banner')) return;
+
+            const style = document.createElement('style');
+            style.id = 'pwa-dynamic-styles';
+            style.textContent = `
+                .pwa-sticky-bar {
+                    position: fixed; bottom: 24px; left: 50%;
+                    transform: translateX(-50%) translateY(150%);
+                    width: calc(100% - 32px); max-width: 400px;
+                    z-index: 9999; opacity: 0; pointer-events: none;
+                    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+                }
+                .pwa-sticky-bar.visible { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+                .pwa-bar-content {
+                    background: rgba(30, 37, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+                    border: 1px solid var(--border); border-radius: 24px;
+                    padding: 10px 16px; display: flex; align-items: center;
+                    justify-content: space-between; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+                }
+                .pwa-bar-info { display: flex; align-items: center; gap: 12px; }
+                .pwa-bar-icon { 
+                    width: 42px; height: 42px; background: var(--accent-green); 
+                    border-radius: 12px; display: flex; align-items: center; 
+                    justify-content: center; font-size: 1.3rem;
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+                }
+                .pwa-bar-text strong { color: var(--text-white); font-size: 0.9rem; display: block; line-height: 1.2; }
+                .pwa-bar-text span { color: var(--text-gray); font-size: 0.75rem; }
+                .btn-pwa-add {
+                    background: var(--accent-green); color: #000; border: none;
+                    padding: 8px 18px; border-radius: 14px; font-weight: 800;
+                    font-size: 0.75rem; text-transform: uppercase; cursor: pointer;
+                    transition: transform 0.2s;
+                }
+                .btn-pwa-add:active { transform: scale(0.95); }
+                .btn-pwa-close {
+                    background: transparent; color: var(--text-gray);
+                    border: none; font-size: 1.5rem; cursor: pointer;
+                    line-height: 1; padding: 0 4px;
+                }
+            `;
+            document.head.appendChild(style);
+
+            const pwaWrapper = document.createElement('div');
+            pwaWrapper.id = 'pwa-mini-banner';
+            pwaWrapper.className = 'pwa-sticky-bar';
+            pwaWrapper.innerHTML = `
+                <div class="pwa-bar-content">
+                    <div class="pwa-bar-info">
+                        <span class="pwa-bar-icon">📊</span>
+                        <div class="pwa-bar-text">
+                            <strong>QuantVAT App</strong>
+                            <span>Install for instant access</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button id="btn-pwa-install" class="btn-pwa-add">${isIOS ? 'Show' : 'Add'}</button>
+                        <button id="btn-pwa-close-trigger" class="btn-pwa-close">×</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(pwaWrapper);
+            setTimeout(() => pwaWrapper.classList.add('visible'), 100);
+
+            document.getElementById('btn-pwa-install').addEventListener('click', async () => {
+                if (isIOS) {
+                    alert("To install: Tap the 'Share' icon and select 'Add to Home Screen'.");
+                    return;
+                }
+                if (!deferredPrompt) return;
+                pwaWrapper.classList.remove('visible');
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            });
+
+            document.getElementById('btn-pwa-close-trigger').addEventListener('click', () => {
+                pwaWrapper.classList.remove('visible');
+                localStorage.setItem('pwa_dismissed_at', Date.now());
+                setTimeout(() => { 
+                    pwaWrapper.remove(); 
+                    style.remove(); 
+                }, 600);
+            });
+        }
+    };
+
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(performInjection);
+    } else {
+        window.addEventListener('load', performInjection);
+    }
+})();
+</script>
