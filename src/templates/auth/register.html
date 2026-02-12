@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Create New Account - CryptoVAT{% endblock %} 
-{% block description %}Register new account to access CryptoVAT and start performing crypto cross-market analysis and generate PDF reports free
+{% block title %}Create New Account - QuantVAT{% endblock %} 
+{% block description %}Register new account to access QuantVAT and start performing crypto cross-market analysis and generate PDF reports free
 {% endblock %} 
-{% block og_title %}Create New Account - CryptoVAT{% endblock %} 
-{% block og_description %}Register new account to access CryptoVAT and start performing crypto cross-market analysis and generate PDF reports free{% endblock %} 
+{% block og_title %}Create New Account - QuantVAT{% endblock %} 
+{% block og_description %}Register new account to access QuanrVAT and start performing crypto cross-market analysis and generate PDF reports free{% endblock %} 
 {% block keywords %}register, secure access, crypto dashboard, cryptovat, trading tools{% endblock %} 
 {% block content %}
 <div class="container">
@@ -36,4 +36,5 @@
         <a href="{{ url_for('auth.login') }}" class="link" style="float:none;">Already have an account?</a>
     </div>
 </div>
+{% include 'includes/partials/pwa_prompt.html' %}
 {% endblock %}
