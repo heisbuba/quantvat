@@ -27,7 +27,7 @@ ORIGINAL_HTML_STYLE = """
 
 ORIGINAL_MATCHED_HEADERS = ["Ticker", "Spot MrktCap", "Spot Volume", "Spot VTMR", "Futures Volume", "Futures VTMR", "OISS", "Funding Rate"]
 ORIGINAL_FUTURES_HEADERS = ["Ticker", "Market Cap", "Volume", "VTMR", "OISS", "Funding Rate"]
-ORIGINAL_SPOT_HEADERS = ["Ticker", "Market Cap", "Volume", "Spot VTMR"]
+ORIGINAL_SPOT_HEADERS = ["Ticker", "MarketCap", "Volume", "VTMR"]
 
 class FileScanner:
     """Locates the latest Spot and Futures data files in the USER directory."""
@@ -79,40 +79,44 @@ class DataProcessor:
     def load_spot(path: Path) -> pd.DataFrame:
         print(f"   Parsing Spot File: {path.name}")
         try:
+            # Explicit UTF-8 for Unicode preservation
             if path.suffix == '.html':
-                df = pd.read_html(path)[0]
+                df = pd.read_html(str(path), encoding='utf-8')[0]
             else:
-                df = pd.read_csv(path)
+                df = pd.read_csv(path, encoding='utf-8')
             df.columns = [c.lower().replace(' ', '_') for c in df.columns]
             
             col_map = {
                 'ticker': 'ticker',
                 'symbol': 'ticker', 
-                'spot_vtmr': 'spot_flip', 
-                'flipping_multiple': 'spot_flip',
-                'market_cap': 'spot_mc',
-                'marketcap': 'spot_mc',
-                'volume_24h': 'spot_vol',
-                'volume': 'spot_vol'
+                'vtmr': 'vtmr',           # <--- Ensures VTMR isn't blank
+                'spot_vtmr': 'vtmr', 
+                'flipping_multiple': 'vtmr',
+                'market_cap': 'market_cap',
+                'marketcap': 'market_cap',
+                'volume_24h': 'volume',
+                'volume': 'volume'
             }
             
             df = df.rename(columns=col_map, errors='ignore')
             
-            # Normalize ticker column
+            # Normalize ticker column (Find it if it's missing)
             if 'ticker' not in df.columns:
                  for col in df.columns:
                     if 'sym' in col or 'tick' in col or 'tok' in col:
                         df = df.rename(columns={col: 'ticker'})
                         break
 
+            # Unicode-safe cleaning (Protects Chinese characters)
             if 'ticker' in df.columns:
-                df['ticker'] = df['ticker'].apply(lambda x: re.sub(r'[^A-Z0-9]', '', str(x).upper()))
+                df['ticker'] = df['ticker'].apply(lambda x: str(x).strip().upper())
+                
             print(f"   Extracted {len(df)} spot tokens")
             return df
         except Exception as e:
             print(f"   Spot File Error: {e}")
             return pd.DataFrame()
-
+            
     @staticmethod
     def _generate_table_html(title: str, df: pd.DataFrame, headers: List[str], df_cols: List[str]) -> str:
         if df.empty:
@@ -123,6 +127,7 @@ class DataProcessor:
             df_display[m] = ""
         df_display = df_display[df_cols]
         df_display.columns = headers
+        # escape=False is critical for rendering ticker links
         table_html = df_display.to_html(index=False, classes='table', escape=False)
         return f'<div class="table-container"><h2>{title}</h2>{table_html}</div>'
 
@@ -139,15 +144,15 @@ class DataProcessor:
         try:
             if 'vtmr' in valid_futures.columns:
                 valid_futures = valid_futures[valid_futures['vtmr'] >= 0.50]
-                valid_futures['vtmr_display'] = valid_futures['vtmr'].apply(lambda x: f"{x:.1f}x")
+                valid_futures['vtmr_display'] = valid_futures['vtmr'].apply(lambda x: f"{x:.2f}x")
         except Exception as e:
             print(f"   Futures high-quality filtering error: {e}")
             valid_futures['vtmr_display'] = valid_futures['vtmr']
 
-        # Create the 3 main datasets: Overlap, Futures-Only, Spot-Only
+        # Suffix-based merge to prevent blank column mapping issues
         merged = pd.merge(spot_df, valid_futures, on='ticker', how='inner', suffixes=('_spot', '_fut'))
-        if 'vtmr' in merged.columns:
-            merged = merged.sort_values('vtmr', ascending=False)
+        if 'vtmr_fut' in merged.columns:
+            merged = merged.sort_values('vtmr_fut', ascending=False)
         
         futures_only = valid_futures[~valid_futures['ticker'].isin(spot_df['ticker'])].copy()
         if 'vtmr' in futures_only.columns:
@@ -155,30 +160,31 @@ class DataProcessor:
         
         spot_only = spot_df[~spot_df['ticker'].isin(merged['ticker'])].copy()
         
-        if 'spot_flip' in spot_only.columns:
+        if 'vtmr' in spot_only.columns:
             try:
                 spot_only = spot_only.copy()
-                spot_only.loc[:, 'flip_numeric'] = spot_only['spot_flip'].astype(str).str.replace('x', '', case=False).astype(float)
+                spot_only.loc[:, 'flip_numeric'] = spot_only['vtmr'].astype(str).str.replace('x', '', case=False).astype(float)
                 spot_only = spot_only[spot_only['flip_numeric'] >= 0.50]
                 spot_only = spot_only.drop(columns=['flip_numeric'])
             except Exception as e:
                 print(f"   Spot filtering error: {e}")
         
-        if 'spot_flip' in spot_only.columns:
+        if 'vtmr' in spot_only.columns:
             try:
                 spot_only = spot_only.copy()
-                spot_only.loc[:, 'sort_val'] = spot_only['spot_flip'].astype(str).str.replace('x', '', case=False).astype(float)
+                spot_only.loc[:, 'sort_val'] = spot_only['vtmr'].astype(str).str.replace('x', '', case=False).astype(float)
                 spot_only = spot_only.sort_values('sort_val', ascending=False).drop(columns=['sort_val'])
             except Exception:
                 pass
         
-        merged_cols = ['ticker', 'spot_mc', 'spot_vol', 'spot_flip', 'volume', 'vtmr_display', 'oiss', 'funding']
+        merged_cols = ['ticker', 'market_cap_spot', 'volume_spot', 'vtmr_spot', 'volume_fut', 'vtmr_display', 'oiss', 'funding']
         futures_cols = ['ticker', 'market_cap', 'volume', 'vtmr_display', 'oiss', 'funding']
+        spot_cols = ['ticker', 'market_cap', 'volume', 'vtmr']
         
         html_content = ""
         html_content += DataProcessor._generate_table_html("Tokens in Both Futures & Spot Markets", merged, ORIGINAL_MATCHED_HEADERS, merged_cols)
         html_content += DataProcessor._generate_table_html("Remaining Futures-Only Tokens", futures_only, ORIGINAL_FUTURES_HEADERS, futures_cols)
-        html_content += DataProcessor._generate_table_html("Remaining Spot-Only Tokens", spot_only, ORIGINAL_SPOT_HEADERS, ['ticker', 'spot_mc', 'spot_vol', 'spot_flip'])
+        html_content += DataProcessor._generate_table_html("Remaining Spot-Only Tokens", spot_only, ORIGINAL_SPOT_HEADERS, spot_cols)
         current_time = now_str("%d-%m-%Y %H:%M:%S")
         
         cheat_sheet_pdf_footer = """
@@ -212,14 +218,14 @@ class DataProcessor:
                 <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-top: 20px;">Remaining Spot Only Tokens</h2>
                 <p>Remember those remaining spot only tokens because there is plenty opportunity there too. So, check them out. Don't fade on them.</p>
            <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-top: 20px;">Disclaimer</h2>
-                <small>This analysis was generated by you using the <strong>Crypto Volume Analysis Toolkit</strong> by <strong>@heisbuba</strong>. It empowers your market research but does not replace your due diligence. Verify the data, back your own instincts, and trade entirely at your own risk.</small>
+                <small>This analysis was generated by you using the <strong>QuantVAT</strong> by <strong>@heisbuba</strong>. It empowers your market research but does not replace your due diligence. Verify the data, back your own instincts, and trade entirely at your own risk.</small>
             </div>
         """
         html = f"""
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Crypto Volume-driven Data Analysis Report</title>
+            <title>Quantitative Crypto Volume-driven Data Analysis Report</title>
             <meta charset="UTF-8">
             <style>{ORIGINAL_HTML_STYLE}</style>
         </head>
@@ -232,7 +238,7 @@ class DataProcessor:
             {html_content}
               {cheat_sheet_pdf_footer}
             <div class="footer">
-                <p>Generated by Crypto Volume Analysis Toolkit 4.0 | By (@heisbuba)</p>
+                <p>Generated by QuantVAT | By (@heisbuba)</p>
             </div>
         </body>
         </html>
@@ -241,25 +247,23 @@ class DataProcessor:
 
 def crypto_analysis_v4(user_keys, user_id) -> None:
     """Main execution flow for Advanced Analysis."""
-    print("   ADVANCED CRYPTO VOLUME ANALYSIS v4.0")
+    print("   ADVANCED QUANT CRYPTO VOLUME ANALYSIS")
     print("   Scanning for Futures PDF and Spot CSV/HTML files")
     print("   " + "=" * 50)
     
-    # 1. Find Files
+    # Find Files
     spot_file, futures_file = FileScanner.find_files(user_id)
     if not spot_file or not futures_file:
         print("   Required files not found.")
         raise FileNotFoundError("   You Need CoinAlyze Futures PDF and Spot Market Data. Kindly Generate Spot Data And Upload Futures PDF First.")
     
-    # 2. Parse Files
+    # Parse Files
     futures_df = PDFParser.extract(futures_file)
     spot_df = DataProcessor.load_spot(spot_file)
     
-    # 3. Generate HTML
     html_content = DataProcessor.generate_html_report(futures_df, spot_df)
-    
     if html_content:
-        # 4. Create PDF
+        # Create PDF
         pdf_path = convert_html_to_pdf(html_content, user_id)
         
         print("   🧹 Cleaning up source files after analysis...")

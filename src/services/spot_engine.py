@@ -10,24 +10,38 @@ from src.state import get_user_temp_dir
 from src.config import STABLECOINS
 from src.services.utils import short_num, now_str  
 
-# --- HARDCODED CONFIGURATION ---
-CG_DEMO_API_KEY = "CG-r5a3XQVMhkMC4fQGMuWCw1gp"
-
+# Spot Volume Tracker
 def spot_volume_tracker(user_keys, user_id) -> None:
     """
     Aggregates spot market data with accuracy and performance.
     Prioritizes CoinGecko data for volume accuracy.
     """
-    print("   📊 Starting fresh spot analysis...")
+    def safe_float(val, default):
+        try:
+            if val is None or str(val).strip() == "":
+                return default
+            return float(val)
+        except (ValueError, TypeError):
+            return default
+
+    print("    📊 Starting fresh spot analysis...")
     
     # Set thread name once at the start
     threading.current_thread().name = f"user_{user_id}"
     
     # Extract API keys
     CMC_API_KEY = user_keys.get("CMC_API_KEY", "CONFIG_REQUIRED_CMC")
+    COINGECKO_API_KEY = user_keys.get("COINGECKO_API_KEY", "CONFIG_REQUIRED_CG")
     LIVECOINWATCH_API_KEY = user_keys.get("LIVECOINWATCH_API_KEY", "CONFIG_REQUIRED_LCW")
-    COINRANKINGS_API_KEY = user_keys.get("COINRANKINGS_API_KEY", "CONFIG_REQUIRED_CR")
 
+    # User Filters & Safety Helper
+    settings = user_keys.get("engine_settings", {})
+    MIN_VTMR    = safe_float(settings.get('min_vtmr'), 0.5)
+    MAX_VTMR    = safe_float(settings.get('max_vtmr'), 199.0)
+    MIN_LC_VTMR = safe_float(settings.get('min_largecap_vtmr'), 0.5)
+    LC_THRESHOLD = 1_000_000_000
+    FETCH_THRESHOLD = min(MIN_VTMR, MIN_LC_VTMR)
+    
     # --- Stealth Headers Injection ---
     STEALTH_HEADERS = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -42,103 +56,216 @@ def spot_volume_tracker(user_keys, user_id) -> None:
         "Sec-Fetch-User": "?1",
         "Cache-Control": "max-age=0",
     }
-                                     
+                                        
     def create_html_report(hot_tokens: List[Dict[str, Any]]) -> str:
-        """Generates an HTML report table for the identified high-volume spot tokens."""
+        """
+        Generates the 'Ultimate' branded HTML report.
+        Features: Fluid scaling for all screens, no-wrap data, and integrated navigation.
+        """
         date_prefix = datetime.datetime.now().strftime("%b-%d-%y_%H-%M")
-        
-        # Use user isolated directory
         user_dir = get_user_temp_dir(user_id) 
-        html_file = user_dir / f"Volumed_Spot_Tokens_{date_prefix}.html"
-        
+        html_file = user_dir / f"Spot_Analysis_Report_{date_prefix}.html"
         current_time = now_str("%d-%m-%Y %H:%M:%S")
 
+        # Summary Metrics Calculation
         max_flip = max((t.get('flipping_multiple', 0) for t in hot_tokens), default=0)
-        high_volume = len([t for t in hot_tokens if t.get('flipping_multiple', 0) >= 2])
         large_cap_count = len([t for t in hot_tokens if t.get('large_cap')])
 
         html_content = f"""
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
-            <title>Crypto Volume Tracker v2.5</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+            <title>Spot Analysis Report</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }}
-                .header {{ text-align: center; background-color: #2c3e50; color: white; padding: 20px; border-radius: 10px; }}
-                .summary {{ background-color: #34495e; color: white; padding: 15px; border-radius: 8px; margin: 10px 0; }}
-                .table {{ width: 100%; border-collapse: collapse; background-color: white; }}
-                .table th {{ background-color: #3498db; color: white; padding: 12px; text-align: left; }}
-                .table td {{ padding: 10px; border-bottom: 1px solid #ddd; }}
-                .table tr:nth-child(even) {{ background-color: #f2f2f2; }}
-                .table tr:hover {{ background-color: #e8f4f8; }}
-                .footer {{ text-align: center; margin-top: 20px; color: #7f8c8d; }}
-                .large-cap {{ background-color: #e8f6f3 !important; }}
-                .high-volume {{ color: #e74c3c; font-weight: bold; }}
+                :root {{
+                    --bg-dark: #151a1e;
+                    --bg-card: #1e252a;
+                    --accent-green: #10b981;
+                    --text-main: #ffffff;
+                    --text-dim: #848e9c;
+                    --border: #2b3139;
+                }}
+                body {{ 
+                    font-family: 'Inter', sans-serif; 
+                    margin: 0; 
+                    background-color: var(--bg-dark); 
+                    color: var(--text-main); 
+                    -webkit-font-smoothing: antialiased;
+                }}
+                .header {{ 
+                    background: linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+                    padding: 30px 15px; 
+                    text-align: center; 
+                    border-bottom: 1px solid var(--border);
+                }}
+                .header h1 {{ margin: 0; font-size: 1.3rem; color: var(--accent-green); font-weight: 800; text-transform: uppercase; }}
+                .header p {{ margin: 8px 0 0; font-size: 0.8rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }}
+                
+                .summary {{ 
+                    background: var(--bg-card); 
+                    padding: 15px; 
+                    margin: 15px; 
+                    border-radius: 12px; 
+                    border: 1px solid var(--border);
+                    font-size: 0.85rem;
+                    line-height: 1.5;
+                    text-align: center;
+                }}
+                .summary b {{ color: var(--accent-green); }}
+
+                .table-container {{ 
+                    margin: 0 10px; 
+                    border-radius: 12px; 
+                    border: 1px solid var(--border); 
+                    background: var(--bg-card);
+                    overflow: hidden; /* Manage fit via scaling, not scrolling */
+                }}
+                table {{ width: 100%; border-collapse: collapse; table-layout: fixed; }}
+                
+                th {{ 
+                    background: rgba(0, 0, 0, 0.2); 
+                    color: var(--text-dim); 
+                    padding: 12px 5px; 
+                    text-align: left; 
+                    font-size: 0.65rem; 
+                    text-transform: uppercase; 
+                    letter-spacing: 1px;
+                    border-bottom: 1px solid var(--border);
+                    white-space: nowrap;
+                }}
+                td {{ 
+                    padding: 0; 
+                    border-bottom: 1px solid #2b3139; 
+                    height: 52px; 
+                    vertical-align: middle; 
+                    font-size: 0.85rem; 
+                    white-space: nowrap; /* Prevent data wrap */
+                }}
+                tr:last-child td {{ border-bottom: none; }}
+                
+                tr.large-cap {{ background: rgba(16, 185, 129, 0.03); }}
+                tr.large-cap td:first-child {{ border-left: 3px solid var(--accent-green); }}
+
+                /* Redirection Link Button */
+                .ticker-btn {{
+                    display: block; width: 100%; height: 100%; padding: 14px 8px;
+                    color: var(--accent-green); text-decoration: none; font-weight: 800; 
+                    box-sizing: border-box; transition: background 0.2s;
+                }}
+                .ticker-btn:active {{ background: rgba(16, 185, 129, 0.1); }}
+
+                /* Fluid Scaling Logic for Mobile */
+                @media (max-width: 480px) {{
+                    td {{ font-size: 0.72rem; }}
+                    th {{ font-size: 0.58rem; padding: 10px 4px; }}
+                    .ticker-btn {{ padding: 10px 4px !important; }}
+                    .mono {{ font-size: 0.68rem; }}
+                    .header h1 {{ font-size: 1.1rem; }}
+                    .summary {{ font-size: 0.75rem; margin: 10px; }}
+                }}
+                
+                /* Dashboard Navigation Button */
+                .nav-box {{ text-align: center; margin: 30px 0; }}
+                .back-btn {{
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 12px 24px;
+                    background: transparent;
+                    border: 1px solid var(--text-dim);
+                    color: var(--text-dim);
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 800;
+                    font-size: 0.85rem;
+                    transition: all 0.2s;
+                }}
+                .back-btn:hover {{ border-color: #fff; color: #fff; background: rgba(255,255,255,0.05); }}
+
+                .mono {{ font-family: 'JetBrains Mono', monospace; }}
+                .vol-high {{ color: #ef4444; font-weight: bold; }}
+                
+                .footer {{ 
+                    text-align: center; 
+                    padding: 30px 20px; 
+                    font-size: 0.75rem; 
+                    color: var(--text-dim); 
+                    border-top: 1px solid var(--border);
+                }}
             </style>
         </head>
         <body>
             <div class="header">
-                <h1>SPOT VOLUME CRYPTO TRACKER v2.5</h1>
-                <p>Volume-driven Spot Tokens Analysis</p>
-                <p><small>Generated on: {current_time}</small></p>
+                <h1>Spot Volume Analysis Report</h1>
+                <p>{current_time}</p>
             </div>
+            
             <div class="summary">
-                <h3>Summary</h3>
-                <p>Total High-Volume Tokens: {len(hot_tokens)}</p>
-                <p>Peak Flipping (VTMR) Multiple: {max_flip:.1f}x</p>
-                <p>Large-Cap Tokens (>$1B): {large_cap_count}</p>
+                Found <b>{len(hot_tokens)}</b> tokens. | <b>{large_cap_count}</b> Largecaps tokens found | Highest VTMR <b>{max_flip:.1f}x</b>.
             </div>
+
+            <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 12%; text-align:center;">#</th>
+                        <th style="width: 25%;">Ticker</th>
+                        <th style="width: 23%;">MarketCap</th>
+                        <th style="width: 22%;">Volume</th>
+                        <th style="width: 18%;">VTMR</th>
+                    </tr>
+                </thead>
+                <tbody>
         """
 
-        if hot_tokens:
-            html_content += """
-            <table class="table">
-                <tr>
-                    <th>Rank</th>
-                    <th>Ticker</th>
-                    <th>Market Cap</th>
-                    <th>Volume 24h</th>
-                    <th>Spot VTMR</th>
-                    <th>Sources</th>
-                    <th>Large Cap</th>
+        for i, token in enumerate(hot_tokens):
+            is_lc = token.get('large_cap', False)
+            row_class = "large-cap" if is_lc else ""
+            vtmr = token.get('flipping_multiple', 0)
+            vol_class = "vol-high" if vtmr >= 2 else ""
+            sym = token.get('symbol', '???')
+            
+            # redirection to Deep Diver
+            link = f'<a href="/deep-diver?ticker={sym}" class="ticker-btn">{sym}</a>'
+
+            html_content += f"""
+                <tr class="{row_class}">
+                    <td style="text-align:center; color:var(--text-dim);" class="mono">#{i+1}</td>
+                    <td>{link}</td>
+                    <td style="padding-left:5px;" class="mono">${short_num(token.get('marketcap', 0))}</td>
+                    <td style="padding-left:5px;" class="mono">${short_num(token.get('volume', 0))}</td>
+                    <td class="mono {vol_class}" style="padding-left:5px;">{vtmr:.2f}x</td>
                 </tr>
             """
-            for i, token in enumerate(hot_tokens):
-                row_class = "large-cap" if token.get('large_cap') else ""
-                volume_class = "high-volume" if token.get('flipping_multiple', 0) >= 2 else ""
-                html_content += f"""
-                <tr class="{row_class}">
-                    <td>#{i+1}</td>
-                    <td><b>{token.get('symbol')}</b></td>
-                    <td>${short_num(token.get('marketcap', 0))}</td>
-                    <td>${short_num(token.get('volume', 0))}</td>
-                    <td class="{volume_class}">{token.get('flipping_multiple', 0):.1f}x</td>
-                    <td>{token.get('source_count')}</td>
-                    <td>{'Yes' if token.get('large_cap') else 'No'}</td>
-                </tr>
-                """
-            html_content += "</table>"
-        else:
-            html_content += "<div style='text-align: center; padding: 40px;'><h3>No high-volume tokens found</h3></div>"
-
+        
         html_content += f"""
+                </tbody>
+            </table>
+            </div>
+
+            <div class="nav-box">
+                <a href="/reports-list" class="back-btn">← BACK TO REPORTS LIST</a>
+            </div>
+
             <div class="footer">
-                <p>Generated by Spot Volume Crypto Tracker v2.5</p>
+                Report by QuantVat using SpotVolTracker v2.6
             </div>
         </body>
         </html>
         """
-        
+
         with open(html_file, "w", encoding="utf-8") as f:
             f.write(html_content)
         return html_file
-
+    
     # --- Data Fetching Functions ---
 
     def fetch_coingecko(session: requests.Session) -> List[Dict[str, Any]]:
         threading.current_thread().name = f"user_{user_id}"
         tokens: List[Dict[str, Any]] = []
-        use_key = bool(CG_DEMO_API_KEY and CG_DEMO_API_KEY not in ["YOUR_COINGECKO_DEMO_KEY_HERE", ""])
+        use_key = bool(COINGECKO_API_KEY and COINGECKO_API_KEY != "CONFIG_REQUIRED_CG")
         
         for page in range(1, 5):
             try:
@@ -147,11 +274,11 @@ def spot_volume_tracker(user_keys, user_id) -> None:
                 headers = STEALTH_HEADERS.copy()
                 
                 if use_key:
-                    if page == 1: print("   Scanning CoinGecko (User API - Fast Mode)...")
-                    headers["x-cg-demo-api-key"] = CG_DEMO_API_KEY
+                    if page == 1: print("    ⚡ Scanning CoinGecko...")
+                    headers["x-cg-demo-api-key"] = COINGECKO_API_KEY
                     delay = 0.05
                 else:
-                    if page == 1: print("   Scanning CoinGecko (Public API)...")
+                    if page == 1: print("    🐌 Scanning CoinGecko (Slow Mode)...")
                     delay = 0.2
                 
                 r = session.get(url, params=params, headers=headers, timeout=15)
@@ -167,11 +294,11 @@ def spot_volume_tracker(user_keys, user_id) -> None:
                     vol, mc = float(t.get("total_volume") or 0), float(t.get("market_cap") or 0)
                     
                     # Fetching pre-filter
-                    if mc and vol >= 0.5 * mc:
+                    if mc > 0 and (vol / mc) >= FETCH_THRESHOLD:
                         tokens.append({"symbol": symbol, "marketcap": mc, "volume": vol, "source": "CG"})
                 time.sleep(delay)
             except Exception: continue
-        print(f"   CoinGecko: {len(tokens)} tokens")
+        print(f"    ✅ CoinGecko: {len(tokens)} tokens")
         return tokens
 
     def fetch_coinmarketcap(session: requests.Session) -> List[Dict[str, Any]]:
@@ -179,7 +306,7 @@ def spot_volume_tracker(user_keys, user_id) -> None:
         tokens: List[Dict[str, Any]] = []
         if not CMC_API_KEY or CMC_API_KEY == "CONFIG_REQUIRED_CMC": return tokens
 
-        print("   Scanning CoinMarketCap...")
+        print("    ⚡ Scanning CoinMarketCap...")
         headers = STEALTH_HEADERS.copy()
         headers["X-CMC_PRO_API_KEY"] = CMC_API_KEY
         for start in range(1, 1001, 100):
@@ -192,11 +319,11 @@ def spot_volume_tracker(user_keys, user_id) -> None:
                     if symbol in STABLECOINS: continue
                     q = t.get("quote", {}).get("USD", {})
                     vol, mc = float(q.get("volume_24h") or 0), float(q.get("market_cap") or 0)
-                    if mc and vol >= 0.5 * mc:
+                    if mc > 0 and (vol / mc) >= FETCH_THRESHOLD:
                         tokens.append({"symbol": symbol, "marketcap": mc, "volume": vol, "source": "CMC"})
                 time.sleep(0.2)
             except Exception: continue
-        print(f"   CoinMarketCap: {len(tokens)} tokens")
+        print(f"    ✅ CoinMarketCap: {len(tokens)} tokens")
         return tokens
 
     def fetch_livecoinwatch(session: requests.Session) -> List[Dict[str, Any]]:
@@ -204,7 +331,7 @@ def spot_volume_tracker(user_keys, user_id) -> None:
         tokens: List[Dict[str, Any]] = []
         if not LIVECOINWATCH_API_KEY or LIVECOINWATCH_API_KEY == "CONFIG_REQUIRED_LCW": return tokens
 
-        print("   Scanning LiveCoinWatch...")
+        print("    ⚡ Scanning LiveCoinWatch...")
         headers = STEALTH_HEADERS.copy()
         headers.update({"content-type": "application/json", "x-api-key": LIVECOINWATCH_API_KEY})
         payload = {"currency": "USD", "sort": "rank", "order": "ascending", "offset": 0, "limit": 1000, "meta": True}
@@ -215,50 +342,25 @@ def spot_volume_tracker(user_keys, user_id) -> None:
                 symbol = (t.get("code") or "").upper()
                 if symbol in STABLECOINS: continue
                 vol, mc = float(t.get("volume") or 0), float(t.get("cap") or 0)
-                if mc and vol >= 0.5 * mc:
+                if mc > 0 and (vol / mc) >= FETCH_THRESHOLD:
                     tokens.append({"symbol": symbol, "marketcap": mc, "volume": vol, "source": "LCW"})
         except Exception: pass
-        print(f"   LiveCoinWatch: {len(tokens)} tokens")
-        return tokens
-
-    def fetch_coinrankings(session: requests.Session) -> List[Dict[str, Any]]:
-        threading.current_thread().name = f"user_{user_id}"
-        tokens: List[Dict[str, Any]] = []
-        if not COINRANKINGS_API_KEY or COINRANKINGS_API_KEY == "CONFIG_REQUIRED_CR": return tokens
-
-        print("   Scanning CoinRankings...")
-        headers = STEALTH_HEADERS.copy()
-        headers["x-access-token"] = COINRANKINGS_API_KEY
-        for offset in range(0, 1000, 100):
-            try:
-                r = session.get("https://api.coinranking.com/v2/coins", headers=headers, 
-                                params={"limit": 100, "offset": offset, "orderBy": "marketCap", "orderDirection": "desc"}, timeout=15)
-                r.raise_for_status()
-                for coin in r.json().get("data", {}).get("coins", []):
-                    symbol = (coin.get("symbol") or "").upper()
-                    if symbol in STABLECOINS: continue
-                    vol, mc = float(coin.get("24hVolume") or 0), float(coin.get("marketCap") or 0)
-                    if mc and vol >= 0.5 * mc:
-                        tokens.append({"symbol": symbol, "marketcap": mc, "volume": vol, "source": "CR"})
-                time.sleep(0.2)
-            except Exception: pass
-        print(f"   CoinRankings: {len(tokens)} tokens")
+        print(f"    ✅ LiveCoinWatch: {len(tokens)} tokens")
         return tokens
 
     def fetch_all_sources() -> Tuple[List[Dict[str, Any]], int]:
-        print("   Scanning for high-volume tokens...")
-        print("   Prioritize CoinGecko data for Accuracy... ")
-        print("   " + "-" * 50)
-        sources = [fetch_coingecko, fetch_coinmarketcap, fetch_livecoinwatch, fetch_coinrankings]
+        print("    🔍 Scanning for high-volumed tokens...")
+        print("    ⬆️ CoinGecko data for accuracy... ")
+        sources = [fetch_coingecko, fetch_coinmarketcap, fetch_livecoinwatch]
         results = []
-        with ThreadPoolExecutor(max_workers=4) as exe:
+        with ThreadPoolExecutor(max_workers=3) as exe:
             futures = [exe.submit(fn, requests.Session()) for fn in sources]
             for f in as_completed(futures):
                 try:
                     res = f.result(timeout=60)
                     if res: results.extend(res)
                 except Exception: continue
-        print(f"   Total raw results: {len(results)}")
+        print(f"    📊 Total raw results: {len(results)}")
         return results, len(results)
 
     # --- Processing Logic ---
@@ -277,10 +379,11 @@ def spot_volume_tracker(user_keys, user_id) -> None:
             # If CG has it, we ignore all other sources and use CG metrics alone
             volume, marketcap = cg_data['volume'], cg_data['marketcap']
             ratio = volume / marketcap
-            is_large = (marketcap > 1_000_000_000)
+            is_large = (marketcap > LC_THRESHOLD)
             
             # Flexible Thresholds
-            if (is_large and ratio >= 0.5) or (not is_large and ratio >= 0.5):
+            if (is_large and ratio >= MIN_LC_VTMR and ratio <= MAX_VTMR) or \
+               (not is_large and ratio >= MIN_VTMR and ratio <= MAX_VTMR):
                 verified_tokens.append({
                     "symbol": sym, "marketcap": marketcap, "volume": volume, 
                     "flipping_multiple": ratio, "source_count": len(tokens), "large_cap": is_large
@@ -292,26 +395,19 @@ def spot_volume_tracker(user_keys, user_id) -> None:
                 volume = sum(t['volume'] for t in tokens) / len(tokens)
                 marketcap = sum(t['marketcap'] for t in tokens) / len(tokens)
                 ratio = volume / marketcap
-                is_large = any(t['marketcap'] > 1_000_000_000 for t in tokens)
+                is_large = any(t['marketcap'] > LC_THRESHOLD for t in tokens)
                 
-                if (is_large and ratio >= 0.5) or (not is_large and ratio >= 0.5):
+                if (is_large and ratio >= MIN_LC_VTMR and ratio <= MAX_VTMR) or \
+                   (not is_large and ratio >= MIN_VTMR and ratio <= MAX_VTMR):
                     verified_tokens.append({
                         "symbol": sym, "marketcap": marketcap, "volume": volume, 
                         "flipping_multiple": ratio, "source_count": len(tokens), "large_cap": is_large
                     })
     hot_tokens = sorted(verified_tokens, key=lambda x: x["flipping_multiple"], reverse=True)
     html_file = create_html_report(hot_tokens)
-
+    #-- Print 
+    report_filename = html_file.name
     now_h = datetime.datetime.now().strftime("%H:%M:%S")
-    print(f"   Found {len(hot_tokens)} high-volume tokens at {now_h}")
-    if hot_tokens:
-        print("\n   HIGH-VOLUME TOKENS:")
-        print("   " + "-" * 60)
-        for i, token in enumerate(hot_tokens):
-            lc = " [LARGE]" if token.get('large_cap') else ""
-            print(f"   #{i+1:2d}. {token.get('symbol'):8} {token.get('flipping_multiple'):.1f}x "
-                  f"| MC: ${short_num(token.get('marketcap')):>8} | Sources: {token.get('source_count')}{lc}")
-        print("   " + "-" * 60)
-    
-    print(f"   HTML report saved: {html_file}")
-    print("   Spot Volume Tracker Analysis completed!")
+    print(f"    💎 Found {len(hot_tokens)} high-volume tokens at {now_h}")
+    print(f"    📂 HTML report saved: /reports-list/{report_filename}")
+    print("    🏁 Spot volume analysis completed!")
