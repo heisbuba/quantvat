@@ -25,13 +25,13 @@
 3. Enter your **Coingecko API Demo key** in the **Setup Wizard**
 4. **Configure VTMR** via CoinAlyze:
 
-### Step 1: API Configuration
+### Step 1: VMTR Configuration
 1. Visit [CoinAlyze.net](https://coinalyze.net) and sign up
 2. Navigate to **Custom Metrics** → **Create Custom Metrics**
 3. Enter **VTMR** in Name and Short Name fields
-4. Paste this expression in the Expression field:
+4. Paste this formula in the Expression field:
    ```code
-   ((vol_1d[0] / mc_1d[0]) * 10) / 10 * (vol_1d[0] / mc_1d[0] >= 0.5)
+   (vol_1d[0] / mc_1d[0]) * (vol_1d[0] / mc_1d[0] >= 0.5)
    ```
 5. **Save & Close**
 
