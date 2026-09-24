@@ -77,6 +77,7 @@ We welcome contributions! This project is **MIT Licensed** — free to use, modi
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v4.7** | Sep 24, 2026 | Made many upgrades and optimizations, and removed PDF generation, keeping only HTML. 
 | **v4.6** | Aug 4, 2026 | Enhanced futures PDF parser, cross‑platform data extraction, code restructure |
 | **v4.5** | Feb 12, 2026 | Major UI/UX fix, AI Trading Journal, Deep Diver Engine, PWA support |
 | **v4.1** | Jan 11, 2026 | Improved Spot Volume Tracker with mandatory CoinGecko Demo API config |
