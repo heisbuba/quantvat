@@ -1,7 +1,9 @@
 import os
+import re
 from datetime import datetime
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash, send_from_directory, make_response, jsonify
 from googleapiclient.errors import HttpError
+from werkzeug.utils import safe_join
 from firebase_admin import auth as firebase_auth
 
 from ..config import get_user_keys, update_user_keys, is_user_setup_complete, db, get_global_stats, increment_global_stat, increment_global_stat_count, firestore, get_recent_errors, clear_error_logs, invalidate_user_cache
@@ -290,12 +292,30 @@ def reports_list():
     report_files = []
     # Collect all generated artifacts for listing
     if user_dir.exists():
-        for pattern in ['*.html', '*.pdf', '*.csv']:
+        for pattern in ['*.html', '*.csv']:
             for f in user_dir.glob(pattern):
                 if f.is_file():
                     report_files.append(f.name)
     
     return render_template("reports/list.html", report_files=sorted(report_files, reverse=True))
+
+
+# --- Downloaded report links --- #
+
+def _app_base_url() -> str:
+    """Public base URL of the app, used to make downloaded reports link back here."""
+    explicit = os.environ.get("APP_BASE_URL", "").strip()
+    if explicit:
+        return explicit.rstrip("/")
+    space_host = os.environ.get("SPACE_HOST", "").strip()  # set automatically on Hugging Face Spaces
+    if space_host:
+        return f"https://{space_host}"
+    return "https://heisbuba-quantvat.hf.space"
+
+
+def _absolutize_report_links(html: str, base_url: str) -> str:
+    """Turn in-app links (href="/deep-diver?...", href="/") into absolute URLs so they work offline."""
+    return re.sub(r'href="/(?!/)', f'href="{base_url}/', html)
 
 @main_bp.route("/reports/<path:filename>")
 @login_required
@@ -305,9 +325,19 @@ def serve_report(filename):
     is_download = request.args.get('dl') == '1'
     record_report_view()  # batched: one Firestore write per minute, not per view
     
-    if filename.lower().endswith('.pdf'):
-        mimetype = 'application/pdf'
-    elif filename.lower().endswith('.csv'):
+    # Downloaded HTML leaves the app, so its relative links must point back to the site
+    if is_download and filename.lower().endswith('.html'):
+        file_path = safe_join(str(user_dir), filename)
+        if not file_path or not os.path.isfile(file_path):
+            return 'Not Found', 404
+        with open(file_path, encoding='utf-8') as fh:
+            body = _absolutize_report_links(fh.read(), _app_base_url())
+        resp = make_response(body)
+        resp.headers['Content-Type'] = 'text/html; charset=utf-8'
+        resp.headers['Content-Disposition'] = f'attachment; filename="{os.path.basename(filename)}"'
+        return resp
+
+    if filename.lower().endswith('.csv'):
         mimetype = 'text/csv'
     else:
         mimetype = None
