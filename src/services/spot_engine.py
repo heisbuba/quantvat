@@ -29,7 +29,11 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
     threading.current_thread().name = f"user_{user_id}"
     update_progress(user_id, 10, "Starting spot market scan...", "active")
 
-    COINGECKO_API_KEY = user_keys.get("COINGECKO_API_KEY", "CONFIG_REQUIRED_CG")
+    COINGECKO_API_KEY = user_keys.get("COINGECKO_API_KEY")
+    if not COINGECKO_API_KEY or COINGECKO_API_KEY == "CONFIG_REQUIRED_CG":
+        print("    ❌ No CoinGecko API key configured — aborting (public endpoint disabled).")
+        update_progress(user_id, 0, "CoinGecko API key required.", "error")
+        raise ValueError("A CoinGecko API key is required to run spot analysis.")
     settings = user_keys.get("engine_settings", {})
     MIN_VTMR = safe_float(settings.get('min_vtmr'), 0.5)
     MAX_VTMR = safe_float(settings.get('max_vtmr'), 199.0)
@@ -140,20 +144,18 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
             return None, []
 
     async def fetch_coingecko(session: aiohttp.ClientSession) -> list[dict[str, Any]]:
-        use_key = bool(COINGECKO_API_KEY and COINGECKO_API_KEY != "CONFIG_REQUIRED_CG")
         headers = STEALTH_HEADERS.copy()
-        if use_key:
-            headers["x-cg-demo-api-key"] = COINGECKO_API_KEY
+        headers["x-cg-demo-api-key"] = COINGECKO_API_KEY
 
         page_range = range(1, SCAN_PAGES + 1)
         results = list(await asyncio.gather(*[_fetch_cg_page(session, p, headers) for p in page_range]))
 
-        retry_pages = [p for p, (status, _) in zip(page_range, results) if use_key and status in (401, 403, 429)]
-        if retry_pages:
-            retry_results = await asyncio.gather(*[_fetch_cg_page(session, p, STEALTH_HEADERS) for p in retry_pages])
-            for p, res in zip(retry_pages, retry_results):
-                results[p - 1] = res
-                
+        statuses = [status for status, _ in results]
+        if any(s in (401, 403, 429) for s in statuses):
+            print("    ❌ CoinGecko request rejected (401/403/429) — aborting.")
+            update_progress(user_id, 0, "CoinGecko request rejected.", "error")
+            raise ValueError("CoinGecko rejected the request — check your key or rate limit and retry.")
+        
         tokens = []
         for _, page_data in results:
             for t in page_data:
@@ -181,7 +183,7 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
                     "price": price,
                     "change_24h": change_24h,
                 })
-        print(f"    CoinGecko returned: {len(tokens)} tokens")
+        print(f"    Tokens returned after filter: {len(tokens)} tokens")
         return tokens
 
     async def _fetch_all_sources_async() -> list[dict[str, Any]]:
