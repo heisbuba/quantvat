@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from weasyprint import HTML, CSS
 
 # Import Global State
 from ..state import get_user_temp_dir
@@ -87,81 +86,6 @@ def parse_mc(val, default: float = 0.0) -> float:
         return float(s)
     except (ValueError, TypeError):
         return default
-
-# --- PDF Generation ---
-_PDF_ONLY_CSS = CSS(string="""
-    thead { display: table-header-group !important; }
-    tr { break-inside: avoid !important; page-break-inside: avoid !important; }
-""")
-
-def _content_bottom_in(doc) -> float:
-    """Return the actual bottom-most content position, in inches, from a
-    rendered WeasyPrint Document
-    """
-    def _max_bottom(box):
-        m = 0.0
-        pos_y = getattr(box, "position_y", None)
-        height = getattr(box, "height", None)
-        if pos_y is not None and isinstance(height, (int, float)):
-            m = max(m, pos_y + height)
-        for child in (getattr(box, "children", None) or []):
-            m = max(m, _max_bottom(child))
-        return m
-
-    page = doc.pages[0]
-    root_box = page._page_box.children[0]
-    bottom_px = _max_bottom(root_box)
-    return bottom_px / 96.0 
-
-def _measure_required_page_height_in(
-    html_obj: HTML,
-    width_in: float = 8.5,
-    safety_in: float = 500.0,
-    buffer_in: float = 0.3,
-) -> float:
-    """Determine the page height needed to fit all content on one page.
-    """
-    css = CSS(string=f"@page {{ size: {width_in}in {safety_in}in; margin: 0; }}")
-    doc = html_obj.render(stylesheets=[css, _PDF_ONLY_CSS])
-    try:
-        bottom_in = _content_bottom_in(doc)
-    except Exception as e:
-        print(f"   ⚠️  Content-height measurement failed ({e}); using safety height.")
-        return safety_in
-    return min(bottom_in + buffer_in, safety_in)
-
-def convert_html_to_pdf(html_content: str, user_id: str) -> Optional[Path]:
-    # Render HTML string to PDF file
-    print("   Converting to PDF...")
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    pdf_name = f"cross-market-analysis-{timestamp}.pdf"
-
-    user_dir = get_user_temp_dir(user_id)
-    pdf_path = user_dir / pdf_name
-
-    try:
-        html_obj = HTML(string=html_content)  # parse once, reuse for every render below
-        required_height_in = _measure_required_page_height_in(html_obj)
-        page_css = CSS(string=f"@page {{ size: 8.5in {required_height_in:.2f}in; margin: 0; }}")
-        doc = html_obj.render(stylesheets=[page_css, _PDF_ONLY_CSS])
-
-        attempts = 0
-        while len(doc.pages) > 1 and attempts < 3:
-            required_height_in = min(required_height_in * 1.5, 500.0)
-            page_css = CSS(string=f"@page {{ size: 8.5in {required_height_in:.2f}in; margin: 0; }}")
-            doc = html_obj.render(stylesheets=[page_css, _PDF_ONLY_CSS])
-            attempts += 1
-
-        doc.write_pdf(pdf_path)
-
-        file_size = pdf_path.stat().st_size
-        print(f"   PDF created: {pdf_name}")
-        print(f"   Size: {file_size:,} bytes")
-        return pdf_path
-
-    except Exception as e:
-        print(f"   ❌ WeasyPrint Error: {e}")
-        return None
 
 # --- File Cleanup ---
 
