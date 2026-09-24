@@ -1,0 +1,223 @@
+/* --- ADMIN HEADER --- */
+.admin-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px;
+    margin-top: 40px;    
+}
+
+.admin-title {
+    color: var(--accent-green);
+    margin: 0;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- STATISTICS GRID --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+}
+
+.stat-label {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* --- TABLE CONTAINER --- */
+.table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-header {
+    padding: 15px 20px;
+    background: rgba(59, 130, 246, 0.05);
+    border-bottom: 1px solid var(--border);
+    color: var(--accent-blue);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* --- TABLE STRUCTURE --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+th {
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: 0.85rem;
+}
+
+/* --- STATUS BADGES --- */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.status-active {
+    background: rgba(14, 203, 129, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(14, 203, 129, 0.2);
+}
+
+.status-idle {
+    background: rgba(132, 142, 156, 0.1);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+}
+
+/* --- PROGRESS BAR --- */
+.progress-track {
+    width: 80px;
+    height: 6px;
+    background: var(--input-bg);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent-blue);
+    transition: width 0.3s;
+}
+
+/* --- ERROR LOGS & BUTTONS --- */
+.table-header.error-header {
+    color: #ff4d4f;
+    background: rgba(255, 77, 79, 0.05);
+}
+
+.btn-icon-text {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-icon-text svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+    stroke: currentColor;
+    fill: none;
+}
+
+.btn-download {
+    border-color: rgba(59, 130, 246, 0.4);
+    color: var(--accent-blue);
+}
+
+.btn-download:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.btn-clear {
+    border-color: rgba(255, 77, 79, 0.4);
+    color: #ff4d4f;
+}
+
+.btn-clear:hover {
+    background: rgba(255, 77, 79, 0.1);
+}
+
+.error-message {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: #ff8a8a;
+    max-width: 420px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.error-source {
+    color: var(--accent-blue);
+    font-size: 0.78rem;
+}
+
+.error-time {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.icon-inline {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+    stroke: currentColor;
+    fill: none;
+    vertical-align: middle;
+}

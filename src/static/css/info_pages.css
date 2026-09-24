@@ -1,0 +1,85 @@
+    /* Typography */
+    .card p {
+        color: #94a3b8;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
+    .card strong {
+        color: #f1f5f9;
+        font-weight: 700;
+    }
+
+    /* Page heading */
+    .page-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Section titles */
+    .section-title {
+        color: var(--accent-green);
+    }
+
+    /* Guide list */
+    .guide-list {
+        padding-left: 20px;
+        margin: 0;
+        color: #94a3b8;
+    }
+    .guide-list li {
+        margin-bottom: 12px;
+        line-height: 1.6;
+    }
+
+    /* Resource buttons */
+    .btn-resource {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 14px;
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        color: #e2e8f0;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
+        text-decoration: none;
+    }
+    .btn-resource:hover {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: #3b82f6;
+        color: #ffffff;
+        transform: translateY(-2px);
+    }
+
+    /* Social grid */
+    .grid-social {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 8px;
+    }
+    .grid-social .btn-resource {
+        margin-bottom: 0;
+    }
+
+    /* Follow heading */
+    .follow-label {
+        font-size: 1rem;
+        color: #94a3b8;
+        margin: 25px 0 15px;
+        font-weight: 500;
+    }
+
+    @media (max-width: 600px) {
+        .grid-social {
+            grid-template-columns: 1fr;
+        }
+    }

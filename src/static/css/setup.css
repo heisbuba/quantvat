@@ -1,0 +1,45 @@
+  /* --- SETUP GUIDE BOX --- */
+.setup-guide-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    font-size: 0.95rem;
+}
+  /* Placeholder */
+ input::placeholder { 
+   color: #64748b; 
+   opacity: 1; 
+   font-style: italic; 
+ }
+
+ /* Auto-save indicator */
+ .save-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 10px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--accent-green);
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 9999;
+    displ
+    align-items: center;
+    gap: 8px;
+ }
+ .save-toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+ }
+ .save-toast.error {
+    color: var(--danger);
+    border-color: var(--danger);
+ }

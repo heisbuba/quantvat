@@ -1,0 +1,17 @@
+/* --- CSS VARIABLES --- */
+:root {
+    --pwa-bg: #151a1e;
+    --bg-dark: #151a1e;
+    --bg-card: #1e252a;
+    --bg-glass: rgba(21, 26, 30, 0.90);
+    --text-main: #ffffff;
+    --text-dim: #848e9c;
+    --accent-green: #10b981;
+    --accent-blue: #3b82f6;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #9333ea;
+    --border: #2b3139;
+    --input-bg: #111827;
+    --radius: 12px;
+}
