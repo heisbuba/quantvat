@@ -1,260 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Settings - QuantVAT{% endblock %} 
 {% block extra_css %}
-<style>
-/* --- MODAL OVERLAY --- */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-
-/* --- MODAL CONTAINER --- */
-.modal-box {
-    background: #151a1e;
-    border: 1px solid #f6465d;
-    border-radius: 16px;
-    padding: 25px 20px;
-    max-width: 300px;
-    width: 85%;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-    animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-}
-
-/* Modal Entrance Animation */
-@keyframes popIn {
-    from {
-        transform: scale(0.8);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-/* --- MODAL CONTENT --- */
-.modal-icon {
-    margin-bottom: 10px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.3));
-}
-
-.modal-title {
-    color: #f6465d;
-    font-size: 1.1rem;
-    font-weight: 800;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.modal-text {
-    color: #9ca3af;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin-bottom: 20px;
-}
-
-/* --- MODAL ACTION BUTTONS --- */
-.modal-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-}
-
-.btn-cancel {
-    background: transparent;
-    border: 1px solid #2b3139;
-    color: #6b7280;
-    cursor: pointer;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-
-.btn-cancel:hover {
-    background: #2b3139;
-    color: #fff;
-}
-
-.btn-delete {
-    background: rgba(246, 70, 93, 0.1);
-    border: 1px solid #f6465d;
-    color: #f6465d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-
-.btn-delete:hover {
-    background: #f6465d;
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(246, 70, 93, 0.4);
-}
-
-.btn-delete-disabled {
-    background: #2b3139;
-    border-color: #2b3139;
-    color: #6b7280;
-    cursor: not-allowed;
-    margin-top: 0;
-    width: 100%;
-    transition: all 0.2s;
-    box-shadow: none;
-}
-
-.btn-delete-disabled.is-enabled {
-    background: #f6465d;
-    border-color: #f6465d;
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(246, 70, 93, 0.4);
-}
-
-.delete-confirm-input {
-    width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 15px;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #f6465d;
-    background: #0d1117;
-    color: #fff;
-    text-align: center;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-.danger-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 15px;
-}
-
-@media (max-width: 480px) {
-    .danger-actions {
-        grid-template-columns: 1fr;
-    }
-}
-  
-.input-with-toggle {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-.input-with-toggle input {
-    width: 100%;
-    padding-right: 40px;
-}
-.toggle-visibility-btn {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #6b7280;
-    cursor: pointer;
-    padding: 0;
-    margin: 0;
-    height: 16px;
-    width: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 0;
-}
-
-.toggle-visibility-btn svg {
-    display: block;
-    width: 16px;
-    height: 16px;
-}
-
-/* --- JOURNAL MODE --- */
-.journal-mode-switcher {
-    display: flex;
-    background: var(--bg-input, #0d1117);
-    padding: 4px;
-    border-radius: 10px;
-    border: 1px solid var(--border, #2b3139);
-    gap: 4px;
-}
-.journal-mode-switcher input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-.journal-mode-switcher label {
-    flex: 1;
-    text-align: center;
-    padding: 10px 8px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: #6b7280;
-    cursor: pointer;
-    transition: 0.2s;
-    margin: 0;
-}
-.journal-mode-switcher input[type="radio"]:checked + label {
-    background: var(--accent-green, #0ecb81);
-    color: #000;
-}
-
-.card-section {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border, #2b3139);
-}
-.card-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-.card-label {
-    display: block;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: #9ca3af;
-    margin: 2px 0 8px;
-}
-
-.card-notice {
-    font-size: 0.85rem;
-    color: #6b7280;
-    margin: 0;
-    padding: 11px 14px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    border: 1px dashed var(--border, #2b3139);
-}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
 {% endblock %}
-
 {% block content %}
 <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -301,12 +49,13 @@
             <p style="color:#848e9c; font-size:0.9rem; margin-bottom:15px;">Update your API keys anytime</p>
 
             <label>CoinGecko Key</label>
-            <div class="input-with-toggle">
-                <input type="password" id="cgKeyInput" name="cg_key" value="{{ cg }}" required>
-                <button type="button" class="toggle-visibility-btn" onclick="toggleFieldVisibility('cgKeyInput', this)" title="Toggle Visibility">
-                    <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </button>
-            </div>
+           <div class="input-with-toggle">
+            <input type="password" id="cgKeyInput" name="cg_key" value="{{ cg }}" required>
+            <button type="button" class="toggle-visibility-btn" onclick="toggleFieldVisibility('cgKeyInput', this)" title="Toggle Visibility">
+             <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="icon-eye-off" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+         </div>
 
             <label style="margin-top:10px; display:block;">VTMR URL</label>
             <input type="text" name="vtmr_url" value="{{ vtmr }}" required>
@@ -385,14 +134,14 @@
                     </div>
                     
                     <div class="input-with-toggle">
-                        <input type="password" id="geminiKeyInput" name="api_key" 
-                               value="{{ user_settings.gemini_key if user_settings and user_settings.gemini_key else '' }}" 
+                       <input type="password" id="geminiKeyInput" name="api_key" 
+                             value="{{ user_settings.gemini_key if user_settings and user_settings.gemini_key else '' }}" 
                                placeholder="Optional: Paste key here...">
-                        <button type="button" class="toggle-visibility-btn" onclick="toggleFieldVisibility('geminiKeyInput', this)" title="Toggle Visibility">
-                            <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        </button>
-                    </div>
-
+                           <button type="button" class="toggle-visibility-btn" onclick="toggleFieldVisibility('geminiKeyInput', this)" title="Toggle Visibility">
+                           <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                           <svg class="icon-eye-off" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                              </button>
+                     </div>
                     <button type="submit" class="btn btn-green" style="margin-top:15px;">UPDATE KEY</button>
                 </form>
             </div>
@@ -515,17 +264,6 @@
 
         btn.disabled = !isValid;
         btn.classList.toggle('is-enabled', isValid);
-    }
-
-    function toggleFieldVisibility(inputId, buttonEl) {
-        const field = document.getElementById(inputId);
-        if (field.type === 'password') {
-            field.type = 'text';
-            buttonEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
-        } else {
-            field.type = 'password';
-            buttonEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-        }
     }
 
     // Close when clicking overlay backdrop for all modals
