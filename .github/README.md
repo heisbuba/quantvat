@@ -20,7 +20,7 @@
 
 # Setup Guide
 
-1. **Launch** the [Live App](https://quantvat.hf.space)
+1. **Launch** the [Live App](https://heisbuba-quantvat.hf.space)
 2. **Create an account** and log in
 3. Enter your **Coingecko API Demo key** in the **Setup Wizard**
 4. **Configure VTMR** via CoinAlyze:
