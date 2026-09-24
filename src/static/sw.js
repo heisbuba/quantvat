@@ -1,6 +1,18 @@
-const CACHE_NAME = 'quantvat-shell-v6';
+const CACHE_NAME = 'quantvat-shell-v5.1';
 const STATIC_ASSETS = [
   '/static/icons/icon-192.png',
+  '/static/css/shared_tokens.css', 
+  '/static/css/base.css',     
+  '/static/css/upload_futures.css',
+  '/static/css/journal.css',
+  '/static/css/settings.css',
+  '/static/css/home.css',
+  '/static/css/deep_diver.css',
+  '/static/css/reports_list.css',
+  '/static/css/watchilist.css',
+  '/static/css/info_pages.css',
+  '/static/css/admin.css',
+  '/static/css/setup.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap'
 ];
 
