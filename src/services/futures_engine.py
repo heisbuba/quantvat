@@ -28,6 +28,8 @@ class TokenData:
 class PDFParser:
     """Extracts tabular data from Coinalyze PDFs (PC and mobile layouts)."""
 
+    # Currency figures are always "n/a" or "$"-prefixed (e.g. "$200.6m") -
+    # never a bare number - which distinguishes them from VTMR and page furniture.
     _CURRENCY_RE = re.compile(r'^[+-]?\$[\d,]+\.?\d*[kKmMbBtT]?$')
 
     _PERCENT_RE = re.compile(r'^[+-]?[\d,]+\.?\d*%$')
@@ -85,9 +87,6 @@ class PDFParser:
 
     @classmethod
     def _group_into_blocks(cls, words) -> List[List[str]]:
-        # words: (x0, y0, x1, y1, text, block_no, line_no, word_no)
-        # from page.get_text("words"). Groups by block_no, ordered within
-        # a block by (line_no, word_no).
         by_block: "dict[int, list]" = {}
         order: List[int] = []
         for w in words:
@@ -105,14 +104,11 @@ class PDFParser:
             blocks.append([t for _, _, t in items])
         return blocks
 
-    # --- Trailing-financial-tail consumption (shared by full-row and
-    #     financial-only parsing) ---
+    # --- Trailing-financial-tail consumption -- #
 
     @classmethod
     def _consume_financial_tail(cls, toks: List[str]) -> Optional[dict]:
-        # Consumes a trailing [mkt_cap, vol, oi%?, funding%?, vtmr] tail
-        # from the right. Returns parsed fields + remaining leading tokens,
-        # or None if the tail isn't present. Works on a local copy.
+        # Consumes a trailing [mkt_cap, vol, oi%?, funding%?, vtmr] tail from the right.
         toks = toks[:]
 
         if not toks or not cls._is_vtmr(toks[-1]):
@@ -149,19 +145,13 @@ class PDFParser:
         joined_lower = ' '.join(tokens).lower()
         if any(k in joined_lower for k in cls.IGNORE_KEYWORDS):
             return True
-        # Some exports render the "Coinalyze" wordmark as individually spaced
-        # glyphs sharing a block with other nav text. Detect that specific
-        # pattern (run of single-char tokens spelling it out) rather than
-        # substring-matching a whitespace-stripped block against every
-        # keyword - that's unsafe, e.g. "Bitcoin"+"SV" -> "...coins...".
+
         single_letters = ''.join(t.lower() for t in tokens if len(t) == 1 and t.isalpha())
         return 'coinalyze' in single_letters
 
     @classmethod
     def _looks_like_ticker(cls, tok: str) -> bool:
-        # Real tickers are short and uppercase/numeric/CJK - never an
-        # ordinary mixed-case word. Filters out stray page furniture that
-        # slips past IGNORE_KEYWORDS.
+        
         if not tok or len(tok) > 15:
             return False
         if not tok.isascii():
@@ -304,6 +294,7 @@ class PDFParser:
             return None
         csv_path = pdf_path.with_suffix(".csv")
         try:
+            # na_rep='n/a'
             df.to_csv(csv_path, index=False, na_rep='n/a')
         except Exception as e:
             print(f"   Could not parse futures CSV: {e}")

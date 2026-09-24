@@ -48,6 +48,46 @@ def now_str(fmt: str = "%d-%m-%Y %H:%M:%S") -> str:
     # Return current local system time in specified format
     return datetime.datetime.now().strftime(fmt)
 
+# --- Numeric Parsing / Formatting Helpers ---
+
+def safe_float(val, default: float) -> float:
+    """Coerce val to float; return default for None/blank/unparseable input."""
+    try:
+        if val is None or str(val).strip() == "":
+            return default
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+def safe_int_clamped(val, default: int, min_val: int, max_val: int) -> int:
+    """Coerce val to int; return default for None/blank/unparseable input,
+    then clamp the result (default included) into [min_val, max_val]."""
+    try:
+        if val is None or str(val).strip() == "":
+            parsed = default
+        else:
+            parsed = int(float(val))  # tolerate "6.0"-style strings too
+    except (ValueError, TypeError):
+        parsed = default
+    return max(min_val, min(max_val, parsed))
+
+_MC_SUFFIX_MULT = {'k': 1e3, 'm': 1e6, 'b': 1e9, 't': 1e12}
+
+def parse_mc(val, default: float = 0.0) -> float:
+    """Parse market-cap shorthand like '5m', '1.2b', '500k', '1t' into a raw float."""
+    if val is None:
+        return default
+    s = str(val).strip().replace('$', '').replace(',', '')
+    if s == "":
+        return default
+    suffix = s[-1].lower() if s[-1].lower() in _MC_SUFFIX_MULT else None
+    try:
+        if suffix:
+            return float(s[:-1]) * _MC_SUFFIX_MULT[suffix]
+        return float(s)
+    except (ValueError, TypeError):
+        return default
+
 # --- PDF Generation ---
 _PDF_ONLY_CSS = CSS(string="""
     thead { display: table-header-group !important; }
