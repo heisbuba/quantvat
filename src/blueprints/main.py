@@ -4,13 +4,38 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from googleapiclient.errors import HttpError
 from firebase_admin import auth as firebase_auth
 
-from ..config import get_user_keys, update_user_keys, is_user_setup_complete, db, get_global_stats, increment_global_stat, firestore
+from ..config import get_user_keys, update_user_keys, is_user_setup_complete, db, get_global_stats, increment_global_stat, increment_global_stat_count, firestore, get_recent_errors, clear_error_logs, invalidate_user_cache
 from ..state import USER_PROGRESS, get_user_temp_dir, TEMP_DIR
 from .auth import login_required
 from ..services.journal_engine import JournalEngine
-from ..services.ai_modal_engine import AiModalEngine
+from ..services.auditor_engine import AuditorEngine
 
 main_bp = Blueprint('main', __name__)
+
+# --- Report View Counter --- #
+import threading as _vt
+_report_view_buffer = [0]
+_report_view_timer = [None]
+_REPORT_VIEW_LOCK = _vt.Lock()
+
+
+def _flush_report_views():
+    with _REPORT_VIEW_LOCK:
+        n = _report_view_buffer[0]
+        _report_view_buffer[0] = 0
+        _report_view_timer[0] = None
+    if n:
+        increment_global_stat_count("report_views", n)
+
+
+def record_report_view() -> None:
+    with _REPORT_VIEW_LOCK:
+        _report_view_buffer[0] += 1
+        if _report_view_timer[0] is None:
+            timer = _vt.Timer(60.0, _flush_report_views)
+            timer.daemon = True
+            _report_view_timer[0] = timer
+            timer.start()
 
 # --- Navigation & Dashboard --- #
 
@@ -29,10 +54,9 @@ def index():
 @login_required
 def home():
     uid = session['user_id']
-    if not is_user_setup_complete(uid):
+    user_data = get_user_keys(uid) or {}
+    if not is_user_setup_complete(uid, user_data=user_data):
         return redirect(url_for('main.setup'))
-
-    user_data = get_user_keys(uid) or {}  
     filters = user_data.get("engine_settings", {}) 
 
     admin_id = os.environ.get('ADMIN_UID', '')
@@ -48,7 +72,7 @@ def home():
 def setup():
     uid = session['user_id']
     current_keys = get_user_keys(uid)
-    return render_template("includes/partials/setup.html",
+    return render_template("auth/setup.html",
         cg=current_keys.get("COINGECKO_API_KEY", ""),
         vtmr=current_keys.get("COINALYZE_VTMR_URL", "")
     )
@@ -94,29 +118,20 @@ def save_config():
         "COINGECKO_API_KEY": request.form.get("cg_key", "").strip(),
         "COINALYZE_VTMR_URL": request.form.get("vtmr_url", "").strip()
     }
+
+    # autosave per field
+    if is_autosave:
+        keys = {k: v for k, v in keys.items() if v}
+        if not keys:
+            return jsonify({"status": "success", "message": "Nothing to save"})
     
     if not update_user_keys(uid, keys):
         if is_ajax:
             return jsonify({"status": "error", "message": "Could not save configuration."}), 500
-        
         flash("System Error: Could not save configuration.", "error")
-        # Preserve typed inputs by re-rendering the form
-        if source == 'settings':
-            current_keys = get_user_keys(uid)
-            drive_linked = "google_refresh_token" in current_keys
-            return render_template("dashboard/settings.html",
-                cg=keys["COINGECKO_API_KEY"],
-                vtmr=keys["COINALYZE_VTMR_URL"],
-                drive_linked=drive_linked,
-                journal_mode_pref=current_keys.get("journal_mode_pref", "both"),
-                user_settings=current_keys
-            )
-        return render_template("includes/partials/setup.html",
-            cg=keys["COINGECKO_API_KEY"],
-            vtmr=keys["COINALYZE_VTMR_URL"]
-        )
+        return redirect(url_for('main.settings' if source == 'settings' else 'main.setup'))
 
-    # For AJAX auto-save, just return JSON 
+    # For AJAX auto-save, just return JSON
     if is_ajax:
         return jsonify({"status": "success", "message": "Saved"})
 
@@ -149,14 +164,15 @@ def factory_reset():
 def delete_account():
     uid = session['user_id']
     try:
-        firebase_auth.delete_user(uid)  # irreversible step — abort on failure, don't touch Firestore
+        firebase_auth.delete_user(uid) 
     except Exception as e:
         print(f"Delete Account Auth Error: {e}")
         flash(f"Account deletion failed: {str(e)}", "error")
         return redirect(url_for('main.settings'))
 
     try:
-        db.collection('users').document(uid).delete()  # best-effort — Auth account is already gone either way
+        db.collection('users').document(uid).delete() 
+        invalidate_user_cache(uid)  
     except Exception as e:
         print(f"Delete Account Firestore Error: {e}")
 
@@ -195,8 +211,7 @@ def admin_dashboard():
     # Query user count from Firestore
     try:
         if db:
-            all_users = db.collection('users').stream()
-            user_count = len(list(all_users))
+            user_count = db.collection('users').count().get()[0][0].value
         else:
             user_count = "DB Error"
     except Exception:
@@ -216,14 +231,54 @@ def admin_dashboard():
                     total_size += os.path.getsize(fp)
     storage_mb = round(total_size / (1024 * 1024), 2)
 
+    error_logs = get_recent_errors(limit=50)
+
     return render_template("admin/admin.html", 
         user_count=user_count,
         active_tasks=lifetime_scans, 
         report_views=report_views,  
         storage_usage=storage_mb,
         progress=USER_PROGRESS,
+        error_logs=error_logs,
         server_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     )
+
+@main_bp.route("/admin/error-logs/download")
+@login_required
+def download_error_logs():
+    uid = session['user_id']
+    admin_id = os.environ.get('ADMIN_UID', '')
+    is_admin = uid == admin_id or uid in admin_id.split(',')
+    if not is_admin:
+        return redirect(url_for('main.home'))
+    import csv
+    import io as _csv_io
+    from flask import Response
+    buf = _csv_io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["timestamp", "source", "uid", "message"])
+    for e in get_recent_errors(limit=1000):
+        writer.writerow([e.get('timestamp'), e.get('source'), e.get('uid') or '', e.get('message')])
+    return Response(
+        buf.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=error_logs.csv"}
+    )
+
+
+@main_bp.route("/admin/error-logs/clear", methods=["POST"])
+@login_required
+def clear_admin_error_logs():
+    uid = session['user_id']
+    admin_id = os.environ.get('ADMIN_UID', '')
+    is_admin = uid == admin_id or uid in admin_id.split(',')
+    if not is_admin:
+        return redirect(url_for('main.home'))
+    if clear_error_logs():
+        flash("Error logs cleared.", "success")
+    else:
+        flash("Failed to clear error logs — see server console.", "error")
+    return redirect(url_for('main.admin_dashboard'))
 
 # --- Reports Management --- #
 
@@ -248,7 +303,7 @@ def serve_report(filename):
     uid = session['user_id']
     user_dir = get_user_temp_dir(uid) 
     is_download = request.args.get('dl') == '1'
-    increment_global_stat("report_views")
+    record_report_view()  # batched: one Firestore write per minute, not per view
     
     if filename.lower().endswith('.pdf'):
         mimetype = 'application/pdf'
@@ -308,13 +363,7 @@ def delete_report(filename):
 @main_bp.route("/journal")
 @login_required
 def trading_journal():
-    # Page shell only — deliberately makes zero Drive API calls. Trades are
-    # fetched client-side from tasks.journal_get_trades (GET) right after
-    # this renders, so the user sees the page immediately instead of
-    # waiting on a Drive round-trip before any HTML is returned. Stats used
-    # to be computed here too, but the frontend has always recomputed them
-    # itself from the loaded trades (see updateStats() in the template) —
-    # the server-side copy was dead weight, so it's gone.
+    # Page shell only — deliberately makes zero Drive API calls.
     uid = session['user_id']
     user_keys = get_user_keys(uid)
     drive_linked = "google_refresh_token" in user_keys
@@ -365,38 +414,22 @@ def save_ai_key():
         
     return redirect(url_for('main.settings'))
 
-@main_bp.route("/journal/ai_context", methods=["POST"])
-@login_required
-def get_journal_ai_context():
-    # Format filtered journal data for AI prompt injection
-    try:
-        data = request.get_json()
-        filtered_trades = data.get('trades', [])
-        context_markdown = JournalEngine.prepare_ai_payload(filtered_trades)
-        
-        return jsonify({
-            "status": "success",
-            "payload": context_markdown
-        })
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
 @main_bp.route("/api/ai/init_audit", methods=["POST"])
 @login_required
 def init_audit():
-    data = request.get_json()
-    csv_context = data.get('csv_context', '') 
+    data = request.get_json(silent=True) or {}
+    csv_context = (data.get('csv_context') or '').strip() 
     uid = session['user_id']
     
     # Validation: Ensure we aren't sending empty prompts
     if not csv_context:
         return jsonify({"status": "error", "message": "No data provided for audit."}), 400
 
-    #  Frontend is now the source of truth for formatting.
-    response_text = AiModalEngine.initialize_firebase_session(uid, csv_context)
-    
-    if "Error" in response_text:
-        return jsonify({"status": "error", "message": response_text}), 400
+    response_text = AuditorEngine.initialize_firebase_session(uid, csv_context)
+
+    text = (response_text or '').strip()
+    if not text or text.startswith(('Error:', 'ERROR', 'Could not', 'Failed to')):
+        return jsonify({"status": "error", "message": text or "Empty response"}), 400
         
     return jsonify({"status": "success", "response": response_text})
 
@@ -404,9 +437,12 @@ def init_audit():
 @login_required
 def ai_chat():
     # Handle multi-turn conversation using Firebase-stored chat history
-    prompt = request.get_json().get('prompt')
+    data = request.get_json(silent=True) or {}
+    prompt = (data.get('prompt') or '').strip()
+    if not prompt:
+        return jsonify({"status": "error", "message": "Empty prompt."}), 400
     uid = session['user_id']
-    response_text = AiModalEngine.continue_firebase_chat(uid, prompt)
+    response_text = AuditorEngine.continue_firebase_chat(uid, prompt)
     
     return jsonify({"status": "success", "response": response_text})
 

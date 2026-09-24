@@ -76,7 +76,9 @@ def login():
                 # Activate the 30-day persistent session
                 session.permanent = True
                 session['user_id'] = resp.json()['localId']
-                
+                from .tasks import warm_journal_for_user
+                warm_journal_for_user(session['user_id'])
+
                 # Retrieve the 'next' destination from the URL parameters
                 next_page = request.args.get('next')
                 
