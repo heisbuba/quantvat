@@ -7,7 +7,6 @@ aiohttp
 pymupdf
 lxml
 gunicorn
-weasyprint
 pillow
 google-api-python-client
 google-auth-httplib2
