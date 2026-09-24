@@ -12,7 +12,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 if __name__ == "__main__":
     print(f"\n{'='*60}")
-    print("QUANTITATIVE CRYPTO VOLUME ANALYSIS TOOL - v4.8.0")
+    print("QUANTITATIVE CRYPTO VOLUME ANALYSIS TOOL - v4.7.1")
     print(f"{'='*60}")
     
     # Debug=False is correct for production PWA deployment
