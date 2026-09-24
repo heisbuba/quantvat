@@ -1,9 +1,10 @@
 import os
 from datetime import timedelta
-from flask import Flask
+from flask import Flask, request, session
 from flask_wtf import CSRFProtect
+from werkzeug.exceptions import HTTPException
 # Import our configuration logic
-from .config import init_firebase, FIREBASE_WEB_API_KEY
+from .config import init_firebase, FIREBASE_WEB_API_KEY, log_error
 from werkzeug.middleware.proxy_fix import ProxyFix
 def create_app():
     app = Flask(__name__)
@@ -36,6 +37,22 @@ def create_app():
         )
         response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         return response
+
+    # Catch anything that slips past route-level try/except so it still
+    # shows up on the admin dashboard instead of just scrolling off in
+    # container stdout.
+    @app.errorhandler(Exception)
+    def handle_uncaught_exception(e):
+        # Let normal HTTP errors (404, 403, etc.) behave as Flask would anyway.
+        if isinstance(e, HTTPException):
+            return e
+        try:
+            uid = session.get('user_id')
+        except Exception:
+            uid = None
+        log_error(source=f"{request.method} {request.path}", message=f"{type(e).__name__}: {e}", uid=uid)
+        return "Something went wrong. The issue has been logged.", 500
+
     # Initialize Database
     try:
         init_firebase()

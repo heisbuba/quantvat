@@ -3,6 +3,9 @@ import sys
 import os
 import json
 import uuid
+import time
+import contextvars
+import traceback
 from pathlib import Path
 from typing import Optional
 import datetime
@@ -118,31 +121,134 @@ def get_active_task(uid) -> Optional[str]:
         return ACTIVE_TASKS.get(uid)
 
 # --- Log Capture System ---
+CURRENT_LOG_USER: contextvars.ContextVar = contextvars.ContextVar("current_log_user", default=None)
+_ERROR_BATCH_WINDOW = 2.0
+_ERROR_BATCH_CAP = 50
+_error_batches = {}
+_error_batches_lock = threading.Lock()
+
+
+def _flush_error_batch(uid):
+    with _error_batches_lock:
+        batch = _error_batches.pop(uid, None)
+    if not batch:
+        return
+    collapsed = []
+    for line in batch["msgs"]:
+        if not collapsed or collapsed[-1] != line:
+            collapsed.append(line)
+    try:
+        from .config import log_error
+        log_error(
+            source="logcatcher",
+            message="\n".join(collapsed)[:1900],
+            uid=uid,
+        )
+    except Exception:
+        pass  
+
+
+def _queue_error_persist(uid, msg):
+    with _error_batches_lock:
+        batch = _error_batches.get(uid)
+        if batch is None:
+            batch = _error_batches[uid] = {"msgs": [], "timer": None}
+        batch["msgs"].append(msg)
+        if len(batch["msgs"]) >= _ERROR_BATCH_CAP:
+            timer = batch["timer"]
+            batch["timer"] = None
+            if timer is not None:
+                timer.cancel()
+            flush_now = True
+        else:
+            flush_now = False
+            if batch["timer"] is None:
+                timer = threading.Timer(_ERROR_BATCH_WINDOW, _flush_error_batch, args=(uid,))
+                timer.daemon = True
+                batch["timer"] = timer
+                timer.start()
+    if flush_now:
+        _flush_error_batch(uid)
+
+
 class LogCatcher:
-    
-    def __init__(self, original_stream):
+
+    def __init__(self, original_stream, is_stderr=False):
         self.terminal = original_stream
+        # stderr writes are errors by definition
+        self.is_stderr = is_stderr
+
+    @staticmethod
+    def _uid_from_thread_name():
+        name = threading.current_thread().name
+        return name.replace("user_", "") if name.startswith("user_") else None
+
+    def _infer_level(self, msg):
+        m = msg.lower()
+        if any(k in m for k in ("error", "critical", "exception", "traceback", "failed")):
+            return "error"
+        if "warn" in m or "\u26a0" in m or "retry" in m or "back off" in m:
+            return "warning"
+        return "info"
 
     def write(self, msg):
         self.terminal.write(msg)
-        if msg and msg.strip():
-            # Identify user by thread name (set in run_background_task)
-            thread_name = threading.current_thread().name
-            
-            # Only capture logs for worker threads named "user_..."
-            if thread_name.startswith("user_"):
-                uid = thread_name.replace("user_", "")
-                
-                with LOCK:
-                    if uid not in USER_LOGS:
-                        USER_LOGS[uid] = []
-                    
-                    USER_LOGS[uid].append(msg)
-                    if len(USER_LOGS[uid]) > 500:
-                        USER_LOGS[uid].pop(0)
+        if not msg or not msg.strip():
+            return
+        uid = CURRENT_LOG_USER.get() or self._uid_from_thread_name()
+        if not uid:
+            return
+        entry = {
+            "ts": time.time(),
+            "level": "error" if self.is_stderr else self._infer_level(msg),
+            "msg": msg.rstrip("\n"),
+        }
+        with LOCK:
+            log = USER_LOGS.setdefault(uid, [])
+            log.append(entry)
+            if len(log) > 500:
+                del log[:len(log) - 500]
+        # Firestore I/O deliberately happens OUTSIDE the global state LOCK.
+        if entry["level"] == "error":
+            _queue_error_persist(uid, entry["msg"])
 
     def flush(self):
         self.terminal.flush()
 
-# Apply the LogCatcher immediately when this module is imported
+    def __getattr__(self, name):
+        terminal = self.__dict__.get("terminal")
+        if terminal is None:
+            raise AttributeError(name)
+        return getattr(terminal, name)
+
+
+def _install_excepthooks():
+    original_sys_hook = sys.excepthook
+    original_thread_hook = threading.excepthook
+
+    def _record(exc_type, exc_value, exc_traceback):
+        try:
+            text = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))[:1900]
+            uid = CURRENT_LOG_USER.get() or LogCatcher._uid_from_thread_name()
+            from .config import log_error
+            log_error(source=f"excepthook:{threading.current_thread().name}", message=text, uid=uid)
+        except Exception:
+            pass
+
+    def sys_hook(exc_type, exc_value, exc_traceback):
+        _record(exc_type, exc_value, exc_traceback)
+        original_sys_hook(exc_type, exc_value, exc_traceback)
+
+    def thread_hook(args):
+        if args.exc_type is not None:
+            _record(args.exc_type, args.exc_value, args.exc_traceback)
+        original_thread_hook(args)
+
+    sys.excepthook = sys_hook
+    threading.excepthook = thread_hook
+
+
+# Tee stdout AND stderr
 sys.stdout = LogCatcher(sys.stdout)
+sys.stderr = LogCatcher(sys.stderr, is_stderr=True)
+_install_excepthooks()
