@@ -1,151 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard - QuantVAT{% endblock %} 
 {% block extra_css %}
-<style>
-   /* --- ADMIN HEADER --- */
-  
-.admin-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 25px;
-    margin-top: 40px;    
-}
-  
-.admin-title {
-    color: var(--accent-green);
-    margin: 0;
-    font-size: 1.3rem;
-}
-
-/* --- STATISTICS GRID --- */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.stat-card {
-    background: var(--bg-card);
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    transition: transform 0.2s;
-}
-
-.stat-card:hover {
-    border-color: var(--accent-blue);
-    transform: translateY(-2px);
-}
-
-.stat-label {
-    color: var(--text-dim);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-
-.stat-value {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--text-main);
-    margin-top: 8px;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-/* --- TABLE CONTAINER --- */
-.table-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.table-header {
-    padding: 15px 20px;
-    background: rgba(59, 130, 246, 0.05);
-    border-bottom: 1px solid var(--border);
-    color: var(--accent-blue);
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* --- TABLE STRUCTURE --- */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 600px;
-}
-
-th {
-    background: rgba(0, 0, 0, 0.2);
-    color: var(--text-dim);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    padding: 12px 20px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-}
-
-td {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    color: var(--text-main);
-    font-size: 0.85rem;
-}
-
-/* --- STATUS BADGES --- */
-.status-badge {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.status-active {
-    background: rgba(14, 203, 129, 0.1);
-    color: var(--accent-green);
-    border: 1px solid rgba(14, 203, 129, 0.2);
-}
-
-.status-idle {
-    background: rgba(132, 142, 156, 0.1);
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-}
-
-/* --- PROGRESS BAR --- */
-.progress-track {
-    width: 80px;
-    height: 6px;
-    background: var(--input-bg);
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: var(--accent-blue);
-    transition: width 0.3s;
-}
-    </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 {% endblock %}
-
 {% block content %}
 <div class="container wide">
     <div class="admin-header">
-        <h1 class="admin-title">👮 Admin Panel</h1>
+        <h1 class="admin-title">
+            <svg class="icon-inline" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin Panel
+        </h1>
     </div>
 
     <div class="stats-grid">
@@ -168,7 +32,12 @@ td {
     </div>
 
     <div class="table-card">
-        <div class="table-header">⚡ LIVE ACTIVITY</div>
+        <div class="table-header">
+            <div class="header-title">
+                <svg class="icon-inline" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>LIVE ACTIVITY</span>
+            </div>
+        </div>
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -195,5 +64,50 @@ td {
         </div>
     </div>
 
+    <div class="table-card" style="margin-top: 25px;">
+        <div class="table-header error-header">
+            <div class="header-title">
+                <svg class="icon-inline" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>ERROR LOGS ({{ error_logs|length }})</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <a href="{{ url_for('main.download_error_logs') }}" class="btn-icon-text btn-download">
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>CSV</span>
+                </a>
+                <form method="POST" action="{{ url_for('main.clear_admin_error_logs') }}" onsubmit="return confirm('Clear all error logs? This cannot be undone.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-icon-text btn-clear">
+                        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <span>Clear</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Source</th>
+                        <th>User</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in error_logs %}
+                    <tr>
+                        <td class="error-time">{{ entry.timestamp }}</td>
+                        <td class="error-source">{{ entry.source }}</td>
+                        <td style="font-family: 'JetBrains Mono'; color: var(--text-dim);">{{ (entry.uid or "—")[:8] }}</td>
+                        <td class="error-message">{{ entry.message }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--text-dim);">No errors logged 🎉</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}
