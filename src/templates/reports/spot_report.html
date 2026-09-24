@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spot Analysis Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #151a1e;
+            --bg-card: #1e252a;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --text-main: #ffffff;
+            --text-dim: #848e9c;
+            --border: #2b3139;
+            --danger: #ef4444;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            -webkit-font-smoothing: antialiased;
+        }
+        .header { 
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+            padding: 30px 15px; 
+            text-align: center; 
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 { margin: 0; font-size: 1.3rem; color: var(--accent-green); font-weight: 800; text-transform: uppercase; }
+        .header p { margin: 8px 0 0; font-size: 0.8rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+
+        .summary { 
+            background: var(--bg-card); 
+            padding: 15px; 
+            margin: 15px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .summary b { color: var(--accent-green); }
+
+        .table-container { 
+            margin: 0 10px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            background: var(--bg-card);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 800px; }
+
+        th { 
+            background: rgba(0, 0, 0, 0.2); 
+            color: var(--text-dim); 
+            padding: 12px 5px; 
+            text-align: left; 
+            font-size: 0.65rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        td { 
+            padding: 0; 
+            border-bottom: 1px solid #2b3139; 
+            height: 52px; 
+            vertical-align: middle; 
+            font-size: 0.85rem; 
+            white-space: nowrap;
+        }
+        tr:last-child td { border-bottom: none; }
+
+        tr.large-cap { background: rgba(16, 185, 129, 0.03); }
+        tr.large-cap td:first-child { border-left: 3px solid var(--accent-green); }
+
+        .ticker-btn {
+            display: block; 
+            width: 100%; 
+            height: 100%; 
+            padding: 14px 8px;
+            color: var(--accent-green); 
+            text-decoration: none; 
+            font-weight: 800; 
+            box-sizing: border-box; 
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(16, 185, 129, 0.15);
+            transition: background 0.15s;
+        }
+        .ticker-btn:active { 
+            background: rgba(16, 185, 129, 0.1); 
+        }
+
+        @media (max-width: 480px) {
+            td { font-size: 0.72rem; }
+            th { font-size: 0.58rem; padding: 10px 4px; }
+            .ticker-btn { padding: 10px 4px !important; }
+            .mono { font-size: 0.68rem; }
+            .header h1 { font-size: 1.1rem; }
+            .summary { font-size: 0.75rem; margin: 10px; }
+            .hide-on-mobile { display: none; }
+                            }
+
+        .action-btn {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+        .action-btn:disabled {
+            background: #4b5563;
+            opacity: 0.7;
+            cursor: wait;
+        }
+        .action-btn.view-btn {
+            background: var(--accent-green);
+            color: #0b0f11;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        .modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .modal-title { font-size: 1.1rem; font-weight: 800; color: var(--accent-green); }
+        .chart-link {
+            flex-shrink: 0;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 800;
+            border: 1px solid var(--accent-blue);
+            padding: 4px 10px;
+            border-radius: 6px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(59, 130, 246, 0.15);
+        }
+        .chart-link:active { background: rgba(59, 130, 246, 0.15); }
+        @media (hover: hover) {
+            .chart-link:hover { background: rgba(59, 130, 246, 0.1); }
+        }
+        .modal-close {
+            background: none; border: none; color: var(--text-dim);
+            font-size: 1.5rem; cursor: pointer; line-height: 1;
+        }
+        .modal-body {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            white-space: pre-line;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .vol-high { color: #ef4444; font-weight: bold; }
+        .pcp-pos { color: var(--accent-green); font-weight: bold; }
+        .pcp-neg { color: #ef4444; font-weight: bold; }
+        .pcp-flat { color: var(--text-dim); }
+
+        .nav-box { text-align: center; margin: 30px 0; }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--text-dim);
+            color: var(--text-dim);
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.85rem;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(255,255,255,0.1);
+            transition: all 0.15s;
+        }
+        .back-btn:active {
+            background: rgba(255,255,255,0.08);
+            border-color: #fff;
+            color: #fff;
+        }
+        @media (hover: hover) {
+            .back-btn:hover {
+                border-color: #fff;
+                color: #fff;
+                background: rgba(255,255,255,0.05);
+            }
+        }
+
+        .footer { 
+            text-align: center; 
+            padding: 30px 20px; 
+            font-size: 0.75rem; 
+            color: var(--text-dim); 
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Spot Volume-driven Analysis</h1>
+        <p>$current_time</p>
+    </div>
+
+    <div class="summary">
+        Found <b>$token_count</b> tokens. | <b>$large_cap_count</b> Largecaps tokens found | Highest VTMR <b>${max_flip}x</b>.
+    </div>
+
+    <div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 6%; text-align:center;">#</th>
+                <th style="width: 16%;">Ticker</th>
+                <th style="width: 12%;" class="hide-on-mobile">24H %</th>
+                <th style="width: 16%;">MarketCap</th>
+                <th style="width: 16%;">Volume</th>
+                <th style="width: 14%;">VTMR</th>
+                <th style="width: 16%;">Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            $table_rows
+        </tbody>
+    </table>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-title" id="modalTitle">Analysis Breakdown</div>
+                    <a class="chart-link" id="modalChartLink" href="#" target="_blank" rel="noopener">View Chart ↗</a>
+                </div>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <div class="nav-box">
+        <a href="/reports-list" class="back-btn">← BACK TO REPORTS LIST</a>
+    </div>
+
+    <div class="footer">
+        Report by SpotVolTracker v3.5
+    </div>
+
+                <script>
+        const overlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalClose = document.getElementById('modalClose');
+        const modalChartLink = document.getElementById('modalChartLink');
+
+        const closeModal = () => overlay.classList.remove('active');
+        modalClose.addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+        function shortNum(num) {
+            if (num === null || isNaN(num)) return "N/A";
+            if (num >= 1e9) return "$$" + (num / 1e9).toFixed(2) + "B";
+            if (num >= 1e6) return "$$" + (num / 1e6).toFixed(2) + "M";
+            if (num >= 1e3) return "$$" + (num / 1e3).toFixed(2) + "K";
+            return "$$" + num.toFixed(2);
+        }
+
+        function handleAction(event, btn) {
+            event.stopPropagation();
+            const tr = btn.closest('tr');
+            const explainer = tr.getAttribute('data-explainer');
+            const symbol = tr.getAttribute('data-symbol');
+
+            if (!explainer) {
+                alert('Analysis data not available for this token.');
+                return;
+            }
+
+            modalTitle.textContent = symbol + ' — Quick Breakdown';
+            modalBody.textContent = explainer;
+            modalChartLink.href = `https://www.tradingview.com/chart/?symbol=$${symbol}USDT`;
+            overlay.classList.add('active');
+        }
+    </script>
+</body>
+</html>
