@@ -1,101 +1,12 @@
 {% extends "base.html" %}
-
 {% block title %}Help & Resources - QuantVAT{% endblock %}
-{% block description %}Documentation, setup guides, and community resources for the Quantitative Crypto Volume Analysis Toolkit.{% endblock %}
+{% block description %}Documentation, setup guides, and community resources for the Quantitative Crypto Volume Analysis Tool.{% endblock %}
 {% block og_title %}Help & Resources - QuantVAT{% endblock %}
-{% block og_description %}Documentation, setup guides, and community resources for the Quantitative Crypto Volume Analysis Toolkit.{% endblock %}
+{% block og_description %}Documentation, setup guides, and community resources for the Quantitative Crypto Volume Analysis Tool.{% endblock %}
 {% block keywords %}help, quantvat, crypto volume analysis, trading tools, setup guide{% endblock %}
-
 {% block extra_css %}
-<style>
-    /* Typography */
-    .card p {
-        color: #94a3b8;
-        line-height: 1.6;
-        font-size: 0.95rem;
-        margin-bottom: 15px;
-    }
-    .card strong {
-        color: #f1f5f9;
-        font-weight: 700;
-    }
-
-    /* Page heading */
-    .page-heading {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    /* Section titles */
-    .section-title {
-        color: var(--accent-green);
-    }
-
-    /* Resource buttons */
-    .btn-resource {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-        padding: 14px;
-        background: rgba(59, 130, 246, 0.08);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        color: #e2e8f0;
-        font-weight: 500;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        box-sizing: border-box;
-        margin-bottom: 15px;
-        font-size: 0.95rem;
-        text-decoration: none;
-    }
-    .btn-resource:hover {
-        background: rgba(59, 130, 246, 0.15);
-        border-color: #3b82f6;
-        color: #ffffff;
-        transform: translateY(-2px);
-    }
-
-    /* Social grid */
-    .grid-social {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        margin-top: 8px;
-    }
-    .grid-social .btn-resource {
-        margin-bottom: 0;
-    }
-
-    /* Guide list */
-    .guide-list {
-        padding-left: 20px;
-        margin: 0;
-        color: #94a3b8;
-    }
-    .guide-list li {
-        margin-bottom: 12px;
-        line-height: 1.6;
-    }
-
-    /* Follow heading */
-    .follow-label {
-        font-size: 1rem;
-        color: #94a3b8;
-        margin: 25px 0 15px;
-        font-weight: 500;
-    }
-
-    @media (max-width: 600px) {
-        .grid-social {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/info_pages.css') }}">
 {% endblock %}
-
 {% block content %}
 <div class="container">
     <h1 class="page-heading">
@@ -126,7 +37,7 @@
         <h2 class="section-title">Quick Start Guide</h2>
         <ol class="guide-list">
             <li><strong>Register & Login:</strong> Create your account. It is easy, fast, and free.</li>
-            <li><strong>Setup Wizard:</strong> Configure your API keys (CoinMarketCap, etc.) once.</li>
+            <li><strong>Setup Wizard:</strong> Configure your API keys (CoinGeko and VTMR URL) once.</li>
             <li><strong>Spot Scan:</strong> Tap to Identify volume-weighted spot tokens from the last 24 hours.</li>
             <li><strong>Futures Data:</strong> Export the PDF from CoinAlyze and upload it here.</li>
             <li><strong>Cross-Analysis:</strong> The engine fuses the data and generates your OISS score.</li>
@@ -159,7 +70,7 @@
         <h3 class="follow-label">Follow the Project</h3>
 
         <div class="grid-social">
-            <a href="https://x.com/heisbuba"
+            <a href="https://x.com/quantvat"
                class="btn-resource"
                target="_blank"
                rel="noopener noreferrer">

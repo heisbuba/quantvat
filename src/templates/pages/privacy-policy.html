@@ -5,46 +5,9 @@
 {% block og_title %}Privacy Policy - QuantVAT{% endblock %}
 {% block og_description %}Privacy Policy for the Quantitative Crypto Volume Analysis Tool (QuantVAT).{% endblock %}
 {% block keywords %}privacy policy, quantvat, data ownership, google oauth, google drive{% endblock %}
-
 {% block extra_css %}
-<style>
-    /* Typography */
-    .card p {
-        color: #94a3b8;
-        line-height: 1.6;
-        font-size: 0.95rem;
-        margin-bottom: 15px;
-    }
-    .card strong {
-        color: #f1f5f9;
-        font-weight: 700;
-    }
-
-    /* Page heading */
-    .page-heading {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    /* Section titles */
-    .section-title {
-        color: var(--accent-green);
-    }
-
-    /* Guide list */
-    .guide-list {
-        padding-left: 20px;
-        margin: 0;
-        color: #94a3b8;
-    }
-    .guide-list li {
-        margin-bottom: 12px;
-        line-height: 1.6;
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/info_pages.css') }}">
 {% endblock %}
-
 {% block content %}
 <div class="container">
     <h1 class="page-heading">
