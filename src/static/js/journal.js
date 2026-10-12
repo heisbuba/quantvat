@@ -2,7 +2,6 @@ let allTrades = [];
 let filteredTrades = [];
 // Id-keyed lookup so row buttons never need inline-serialized trade objects
 const tradesById = {};
-let currentMode = 'normal';
 let currentPage = 1;
 const itemsPerPage = 15;
 // pendingSnapshots = staged File before trade has an id; savedSnapshots = Drive file id once persisted
@@ -11,23 +10,12 @@ let savedSnapshots = { before: null, after: null };
 let sortCol = 'trade_date';
 let sortAsc = false;
 
-// Set in Settings > Trading Journal Mode. 'normal' | 'meme' | 'both'.
-const journalModePref = ['normal','meme','both'].includes(window.QV.journalModePref) ? window.QV.journalModePref : 'both';
 const driveLinked = window.QV.driveLinked;
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('trade_date').valueAsDate = new Date();
 
     if (!driveLinked) return; 
-
-    // Sets up mode UI without rendering yet
-    if (journalModePref === 'both') {
-        const lastMode = localStorage.getItem('journal_last_mode');
-        setMode(lastMode === 'meme' ? 'meme' : 'normal', true);
-    } else {
-        document.getElementById('mode-switcher').style.display = 'none';
-        setMode(journalModePref, true);
-    }
 
     showTableLoading();
     loadJournalData();
@@ -83,40 +71,16 @@ async function loadJournalData() {
     }
 }
 
-function setMode(mode, skipRender) {
-    currentMode = mode;
-    document.getElementById('current-mode').value = mode;
-    const isMeme = mode === 'meme';
-
-    if (journalModePref === 'both') {
-        localStorage.setItem('journal_last_mode', mode);
-    }
-
-    document.getElementById('btn-normal').classList.toggle('active', !isMeme);
-    document.getElementById('btn-meme').classList.toggle('active', isMeme);
-
-    document.querySelectorAll('.normal-only').forEach(el => el.style.display = isMeme ? 'none' : 'table-cell');
-    document.querySelectorAll('div.normal-only').forEach(el => el.style.display = isMeme ? 'none' : 'block');
-    document.querySelectorAll('.meme-only').forEach(el => el.style.display = isMeme ? 'block' : 'none');
-
-    document.getElementById('lbl-ticker').innerText = isMeme ? "$Ticker" : "Coin Ticker";
-    document.getElementById('th-token-label').innerText = isMeme ? "TICKER" : "TOKEN";
-    document.getElementById('th-mc-label').innerText = isMeme ? "ENTRY MC" : "MKT CAP";
-
-    if (!skipRender) applyFilters();
-}
-
 function applyFilters() {
     const q = document.getElementById('search-input').value.toLowerCase();
     const w = document.getElementById('week-filter').value;
     const m = document.getElementById('month-filter').value;
 
     filteredTrades = allTrades.filter(t => {
-        const matchMode = t.mode === currentMode;
         const matchQ = t.ticker.toLowerCase().includes(q) || (t.strategy && t.strategy.toLowerCase().includes(q));
         const matchW = w === 'all' || t.week === w;
         const matchM = m === 'all' || t.month === m;
-        return matchMode && matchQ && matchW && matchM;
+        return matchQ && matchW && matchM;
     });
 
     updateStats(filteredTrades);
@@ -128,7 +92,7 @@ function renderTable() {
     tbody.innerHTML = '';
 
     if (filteredTrades.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding:30px; color:var(--text-dim);">No trades found for ${currentMode.toUpperCase()}.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding:30px; color:var(--text-dim);">No trades found.</td></tr>`;
         return;
     }
 
@@ -141,15 +105,13 @@ function renderTable() {
         const pnlClass = trade.pnl && trade.pnl.includes('-') ? 'pnl-neg' : 'pnl-pos';
         const review = String(trade.rules_followed) === "true" ? '<span style="color:var(--success)">Plan</span>' : '<span style="color:var(--danger)">Mistake</span>';
 
-        const mcVal = currentMode === 'meme' ? (trade.entry_mcap || '-') : (trade.market_cap || '-');
-        const priceHtml = currentMode === 'normal' ? `<td>${escapeHtml(trade.entry_price || '-')}</td>` : '';
 
         tr.innerHTML = `
             <td>${escapeHtml(trade.trade_date)}</td>
             <td style="font-weight:bold; color:var(--accent-blue);">${escapeHtml(trade.ticker)}</td>
             <td>${escapeHtml(trade.strategy || '-')}</td>
-            <td>${escapeHtml(mcVal)}</td>
-            ${priceHtml}
+            <td>${escapeHtml(trade.market_cap || '-')}</td>
+            <td>${escapeHtml(trade.entry_price || '-')}</td>
             <td>${escapeHtml(trade.entry_time || '-')}</td>
             <td style="color:var(--danger)">${escapeHtml(trade.stop_loss || '-')}</td>
             <td style="color:var(--success)">${escapeHtml(trade.take_profit || '-')}</td>
@@ -215,20 +177,9 @@ function calculateRRR() {
     const tpRaw = document.getElementById('take_profit').value.trim();
     if (!slRaw || !tpRaw) return;
 
-    let risk, reward;
-
-    if (currentMode === 'normal') {
-        const entry = parseFloat(document.getElementById('entry_price').value);
-        risk = resolveDistance(slRaw, entry);
-        reward = resolveDistance(tpRaw, entry);
-    } else {
-        // Meme mode: SL/TP are percentage moves; TP also accepts "3x" style multiples
-        risk = parseFloat(slRaw.replace(/[^0-9.]/g, ''));
-        const tpLower = tpRaw.toLowerCase();
-        reward = tpLower.includes('x')
-            ? (parseFloat(tpLower.replace(/[^0-9.]/g, '')) - 1) * 100
-            : parseFloat(tpRaw.replace(/[^0-9.]/g, ''));
-    }
+    const entry = parseFloat(document.getElementById('entry_price').value);
+    const risk = resolveDistance(slRaw, entry);
+    const reward = resolveDistance(tpRaw, entry);
 
     if (risk > 0 && reward > 0) {
         document.getElementById('rrr').value = "1:" + (reward / risk).toFixed(2);
@@ -336,7 +287,6 @@ function updateStats(trades) {
 
 function editTrade(data) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setMode(data.mode || 'normal');
     document.getElementById('trade_id').value = data.id || '';
     document.getElementById('trade_date').value = data.trade_date || '';
     document.getElementById('ticker').value = data.ticker || '';
@@ -349,16 +299,8 @@ function editTrade(data) {
     document.getElementById('stop_loss').value = data.stop_loss || '';
     document.getElementById('take_profit').value = data.take_profit || '';
     document.getElementById('rrr').value = data.rrr || '';
-    if(data.mode === 'meme') {
-        document.getElementById('entry_mcap').value = data.entry_mcap || '';
-        // Clear normal-mode fields so stale hidden values aren't sent in the payload
-        document.getElementById('entry_price').value = '';
-        document.getElementById('market_cap').value = '';
-    } else {
-        document.getElementById('entry_price').value = data.entry_price || '';
-        document.getElementById('market_cap').value = data.market_cap || '';
-        document.getElementById('entry_mcap').value = '';
-    }
+    document.getElementById('entry_price').value = data.entry_price || '';
+    document.getElementById('market_cap').value = data.market_cap || '';
     const followed = String(data.rules_followed) === "true";
     document.getElementById('rulesToggle').checked = followed;
     toggleRuleTags();
@@ -422,7 +364,6 @@ async function uploadSnapshot(slot, tradeId) {
 
     const fd = new FormData();
     fd.append('id', tradeId);
-    fd.append('mode', currentMode);
     fd.append('slot', slot);
     fd.append('file', file);
 
@@ -461,7 +402,7 @@ async function removeSnapshot(slot) {
             const res = await fetch(window.QV.urls.deleteImage, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.QV.csrf },
-                body: JSON.stringify({ id: tradeId, mode: currentMode, slot })
+                body: JSON.stringify({ id: tradeId, slot })
             });
             const data = await res.json();
             if (data.status !== 'success') { alert(data.message || 'Remove failed.'); return; }
@@ -495,14 +436,10 @@ function resetSnapshots() {
 async function saveToDrive() {
     const btn = document.getElementById('btn-submit');
     const ticker = document.getElementById('ticker').value.trim();
-    const normalMC = document.getElementById('market_cap').value.trim();
-    const memeMC = document.getElementById('entry_mcap').value.trim();
+    const marketCap = document.getElementById('market_cap').value.trim();
 
-    const isNormalValid = (currentMode === 'normal' && normalMC !== "");
-    const isMemeValid = (currentMode === 'meme' && memeMC !== "");
-
-    if (!ticker || (!isNormalValid && !isMemeValid)) {
-        alert(`Action Denied: Ticker and ${currentMode === 'meme' ? 'Entry MC' : 'Market Cap'} are required to initialize a log.`);
+    if (!ticker || !marketCap) {
+        alert('Action Denied: Ticker and Market Cap are required to initialize a log.');
         return;
     }
 
@@ -517,7 +454,7 @@ async function saveToDrive() {
     payload.rules_followed = followed;
     // The form has no before/after image fields, so without this an edit-save
     // on an existing trade would overwrite the Drive record and drop any
-    // already-attached snapshot ids (see save_trade_v2's full-record replace).
+    // already-attached snapshot ids (see save_trade's full-record replace).
     payload.before_image_id = savedSnapshots.before || null;
     payload.after_image_id = savedSnapshots.after || null;
 
@@ -573,7 +510,7 @@ async function deleteTrade() {
     delBtn.innerText = "SYNCING...";
 
     try {
-        const response = await fetch(`/journal/delete/${id}?mode=${currentMode}`, {
+        const response = await fetch(`/journal/delete/${id}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -619,10 +556,10 @@ function resetForm() {
 function exportCSV() {
     if (!filteredTrades.length) return;
     const headers = ["Date", "Ticker", "Strategy", "MC", "Price", "Entry Time", "SL", "TP", "RRR", "PnL", "Exit Time", "Review", "Tags", "Notes"];
-    const rows = filteredTrades.map(t => [t.trade_date, t.ticker, t.strategy, t.entry_mcap || t.market_cap, t.entry_price, t.entry_time, t.stop_loss, t.take_profit, t.rrr, t.pnl, t.exit_time, t.rules_followed ? "Plan" : "Mistake", `"${(t.tags||[]).join(', ')}"`, `"${(t.notes || '').replace(/"/g, '""')}"`]);
+    const rows = filteredTrades.map(t => [t.trade_date, t.ticker, t.strategy, t.market_cap, t.entry_price, t.entry_time, t.stop_loss, t.take_profit, t.rrr, t.pnl, t.exit_time, t.rules_followed ? "Plan" : "Mistake", `"${(t.tags||[]).join(', ')}"`, `"${(t.notes || '').replace(/"/g, '""')}"`]);
     const link = document.createElement("a");
     link.href = encodeURI("data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n"));
-    link.download = `trading_journal_${currentMode}.csv`;
+    link.download = `trading_journal.csv`;
     link.click();
 }
 
@@ -636,7 +573,7 @@ function getCSVString(trades) {
         const safeNotes = (t.notes || '').replace(/"/g, '""').replace(/\n/g, ' ');
         const safeStrat = (t.strategy || '').replace(/"/g, '""');
         const review = t.rules_followed ? "Plan" : "Mistake";
-        const mc = currentMode === 'meme' ? (t.entry_mcap || '') : (t.market_cap || '');
+        const mc = t.market_cap || '';
 
         return [
             t.trade_date,

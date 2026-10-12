@@ -38,14 +38,14 @@
                     busy = false;
                     setActiveButtonDisabled(false);
                     activeButton = null;
-                    term.innerHTML += '<div class="log-line error">> ' +
+                    term.innerHTML += '<div class="log-line error">▸ ' +
                         (data.message || 'Could not start task.') + '</div>';
                     term.scrollTop = term.scrollHeight;
                     return;
                 }
 
                 // Only clear the terminal
-                term.innerHTML = '<div class="log-line">> Starting task...</div>';
+                term.innerHTML = '<div class="log-line">▸ Starting task...</div>';
                 lastIdx = 0;
                 serverRunId = data.run_id || null;
                 document.getElementById('bar').style.width = '5%';
@@ -59,7 +59,7 @@
                 busy = false;
                 setActiveButtonDisabled(false);
                 activeButton = null;
-                term.innerHTML += '<div class="log-line error">> Failed to initiate task.</div>';
+                term.innerHTML += '<div class="log-line error">▸ Failed to initiate task.</div>';
             });
     }
 
@@ -67,7 +67,7 @@
         busy = false;
         setActiveButtonDisabled(false);
         activeButton = null;
-        term.innerHTML += '<div class="log-line error">> Another session started a new task for this account — no longer tracking this run here.</div>';
+        term.innerHTML += '<div class="log-line error">▸ Another session started a new task for this account — no longer tracking this run here.</div>';
         term.scrollTop = term.scrollHeight;
     }
 
@@ -123,9 +123,8 @@
                         if (entry.level === 'error') cls += ' error';
                         else if (entry.level === 'warning') cls += ' warn';
                         else if (entry.msg.includes('Found')) cls += ' highlight';
-                        const t = entry.ts ? new Date(entry.ts * 1000).toLocaleTimeString() : '';
                         div.className = cls;
-                        div.innerText = (t ? '[' + t + '] ' : '') + '> ' + entry.msg;
+                        div.innerText = '▸ ' + entry.msg;
                         term.appendChild(div);
                     });
                     term.scrollTop = term.scrollHeight;
@@ -172,7 +171,7 @@
                 if (data.status === 'success') {
                     toggleModal('filterModal');
                     const term = document.getElementById('term');
-                    term.innerHTML += '<div class="log-line highlight">> Custom filters applied and saved.</div>';
+                    term.innerHTML += '<div class="log-line highlight">▸ Custom filters applied and saved.</div>';
                     term.scrollTop = term.scrollHeight;
                 }
             })
@@ -206,7 +205,7 @@
                     toggleModal(modalId || 'filterModal');
 
                     const term = document.getElementById('term');
-                    term.innerHTML += '<div class="log-line highlight">> Filters reset to defaults.</div>';
+                    term.innerHTML += '<div class="log-line highlight">▸ Filters reset to defaults.</div>';
                     term.scrollTop = term.scrollHeight;
                 }
             });
