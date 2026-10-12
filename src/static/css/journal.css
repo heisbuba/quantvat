@@ -80,17 +80,6 @@
     
     #rrr, #pnl { font-family: 'JetBrains Mono', monospace; }
 
-    /* Mode Switcher Normal/Meme */
-    .mode-switcher { 
-        display: flex; background: var(--bg-input); padding: 4px; 
-        border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px;
-    }
-    .m-btn { 
-        flex: 1; padding: 10px; border: none; background: transparent; 
-        color: var(--text-dim); font-weight: 700; cursor: pointer; border-radius: 8px; transition: 0.2s; 
-    }
-    .m-btn.active { background: var(--accent-blue); color: #000; }
-
     /* Execution Review Toggle */
     .toggle-wrapper { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; justify-content: center;}
     .toggle-switch {
@@ -528,7 +517,7 @@
     @media print {
         body { background: white; color: black; }
         .journal-container { margin: 0; width: 100%; max-width: 100%; }
-        .journal-card, .stats-header, .toolbar, .pagination, .mode-switcher, header, .nav, .action-row, .journal-header { display: none !important; }
+        .journal-card, .stats-header, .toolbar, .pagination, header, .nav, .action-row, .journal-header { display: none !important; }
         .history-card { border: none; overflow: visible; }
         .history-table { min-width: 100%; }
         .history-table th, .history-table td { color: black; border: 1px solid #ddd; font-size: 8px; padding: 4px; }
