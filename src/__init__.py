@@ -60,10 +60,18 @@ def create_app():
         print(f"❌ FATAL: {e}")
     
     # Register Blueprints
-    from .blueprints.auth import auth_bp
-    from .blueprints.main import main_bp
-    from .blueprints.tasks import tasks_bp
+    from .blueprints.auth_route import auth_bp
+    from .blueprints.main_route import main_bp
+    from .blueprints.tasks_route import tasks_bp
+    from .blueprints.chart_browser_route import chart_browser_bp
+    from .blueprints.journal_route import journal_bp
+    from .blueprints.auditor_route import auditor_bp
+    from .blueprints.deep_diver_route import deep_diver_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(tasks_bp)
+    app.register_blueprint(chart_browser_bp)
+    app.register_blueprint(journal_bp)
+    app.register_blueprint(auditor_bp)
+    app.register_blueprint(deep_diver_bp)
     return app
