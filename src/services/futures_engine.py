@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+from .utils import SUFFIX_MULT as _SUFFIX_MULT
+
 try:
     import pymupdf as fitz
 except Exception:
@@ -44,7 +46,7 @@ class PDFParser:
         'open interest - funding rate - liquidations',
     }
 
-    _SUFFIX_MULT = {'k': 1e3, 'm': 1e6, 'b': 1e9, 't': 1e12}
+    _SUFFIX_MULT = _SUFFIX_MULT
 
     # CJK Radicals (U+2E80-2EFF) and CJK Radicals Supplement (U+2F00-2FDF)
     _TICKER_KEEP = r'\w\u2e80-\u2eff\u2f00-\u2fdf'

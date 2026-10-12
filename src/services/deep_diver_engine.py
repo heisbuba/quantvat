@@ -4,6 +4,8 @@ import aiohttp
 from typing import Optional
 from decimal import Decimal, ROUND_HALF_UP
 
+from .utils import COINGECKO_STEALTH_HEADERS as STEALTH_HEADERS
+
 # --- Caches --- #
 CACHE = {}                # snapshot data
 CACHE_DURATION = 180       # 3 minutes (CoinGecko data latency is <4 min)
@@ -13,12 +15,6 @@ HIST_CACHE_DURATION = 3600 # 1 hour
 
 BASE_URL = "https://api.coingecko.com/api/v3"
 REQUEST_TIMEOUT = aiohttp.ClientTimeout(connect=5, total=15)
-
-STEALTH_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Connection": "keep-alive",
-}
 
 # --- DexScreener (Liquidity) --- #
 DEXSCREENER_ENDPOINT = "https://api.dexscreener.com/latest/dex/tokens/{address}"
@@ -46,15 +42,6 @@ def format_compact(num):
             return f"{num:,.2f}{unit}".replace(".00", "")
         num /= 1000.0
     return f"{num:,.2f}P"
-
-
-def short_num(num: float) -> str:
-    """Lightweight compact number formatter for technical indicators."""
-    if not num: return "0"
-    if abs(num) >= 1e9: return f"${num/1e9:.2f}B"
-    if abs(num) >= 1e6: return f"${num/1e6:.2f}M"
-    if abs(num) >= 1e3: return f"${num/1e3:.2f}K"
-    return f"${num:.2f}"
 
 
 def _build_headers(cg_key: str) -> dict:
@@ -217,7 +204,7 @@ async def _fetch_depth_async(session: aiohttp.ClientSession, coin_id: str, heade
 
     tickers = res.get("tickers", []) or []
     total_up, total_down, count = 0.0, 0.0, 0
-    
+
     for t in tickers:
         up = t.get("cost_to_move_up_usd")
         down = t.get("cost_to_move_down_usd")
@@ -276,7 +263,10 @@ async def _fetch_snapshot_async(session: aiohttp.ClientSession, coin_id: str, he
         "tv": f"https://www.tradingview.com/chart/?symbol={symbol}USDT"
     }
 
-    contract_addresses = _extract_contract_addresses(res.get('platforms', {}))
+    platforms = res.get('platforms', {})
+    contract_addresses = _extract_contract_addresses(platforms)
+    active_chains = [k for k, v in platforms.items() if k and v]
+    chain_label = active_chains[0].replace('-', ' ').title() if active_chains else "Native"
 
     depth, liquidity_usd = await asyncio.gather(
         _fetch_depth_async(session, coin_id, headers),
@@ -314,9 +304,10 @@ async def _fetch_snapshot_async(session: aiohttp.ClientSession, coin_id: str, he
             "y1": f"{(mkt.get('price_change_percentage_1y') or 0):+.2f}%"
         },
         "supply": {
-            "total": format_compact(mkt.get('total_supply', 0))
+            "total": format_compact(mkt.get('total_supply', 0)),
+            "chain": chain_label
         },
-        "depth": depth_payload,       
+        "depth": depth_payload,        
         "links": links
     }
 

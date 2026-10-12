@@ -9,8 +9,8 @@ import aiohttp
 from typing import Any
 
 from src.state import get_user_temp_dir, update_progress, set_pending_file
-from src.config import STABLECOINS
-from src.services.utils import short_num, now_str, safe_float, safe_int_clamped, parse_mc
+from src.catalogs.stablecoins import is_stablecoin
+from src.services.utils import short_num, now_str, safe_float, safe_int_clamped, parse_mc_or_default, COINGECKO_STEALTH_HEADERS
 
 # "Pages to Scan" bounds - keep in sync with the min/max on the home.html input
 SCAN_PAGES_DEFAULT = 6
@@ -38,25 +38,18 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
     MIN_VTMR = safe_float(settings.get('min_vtmr'), 0.5)
     MAX_VTMR = safe_float(settings.get('max_vtmr'), 199.0)
     MIN_LC_VTMR = safe_float(settings.get('min_largecap_vtmr'), 0.5)
-    MIN_S_MC = parse_mc(settings.get('min_s_mc'), 0.0)
-    MAX_S_MC = parse_mc(settings.get('max_s_mc'), float('inf'))
+    MIN_S_MC = parse_mc_or_default(settings.get('min_s_mc'), 0.0)
+    MAX_S_MC = parse_mc_or_default(settings.get('max_s_mc'), float('inf'))
     SCAN_PAGES = safe_int_clamped(settings.get('scan_pages'), SCAN_PAGES_DEFAULT, SCAN_PAGES_MIN, SCAN_PAGES_MAX)
     LC_THRESHOLD = 1_000_000_000
     FETCH_THRESHOLD = min(MIN_VTMR, MIN_LC_VTMR)
 
-    STEALTH_HEADERS = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Cache-Control": "max-age=0",
-    }
+    def fmt_pct(val: float | None) -> str:
+        if val is None:
+            return '<span class="pcp-flat">n/a</span>'
+        pcp_class = "pcp-pos" if val > 0 else ("pcp-neg" if val < 0 else "pcp-flat")
+        pcp_sign = "+" if val > 0 else ""
+        return f'<span class="{pcp_class}">{pcp_sign}{val:.2f}%</span>'
 
     def create_html_report(hot_tokens: list[dict[str, Any]]) -> Any:
         date_prefix = datetime.datetime.now().strftime("%b-%d-%y")
@@ -76,13 +69,8 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
             sym = html.escape(str(token.get('symbol', '???')), quote=True)
             coin_id = html.escape(token.get('coin_id', ''), quote=True)
 
-            change_24h = token.get('change_24h')
-            if change_24h is None:
-                pcp_html = '<span class="pcp-flat">n/a</span>'
-            else:
-                pcp_class = "pcp-pos" if change_24h > 0 else ("pcp-neg" if change_24h < 0 else "pcp-flat")
-                pcp_sign = "+" if change_24h > 0 else ""
-                pcp_html = f'<span class="{pcp_class}">{pcp_sign}{change_24h:.2f}%</span>'
+            pcp_html = fmt_pct(token.get('change_24h'))
+            pcp_1h_html = fmt_pct(token.get('change_1h'))
 
             data_attrs = {
                 "coin-id": coin_id,
@@ -91,6 +79,7 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
                 "mcap": token.get('marketcap', 0),
                 "vol24": token.get('volume', 0),
                 "vtmr": vtmr,
+                "c1h": token.get('change_1h', 0),
                 "c24": token.get('change_24h', 0),
             }
             data_str = " ".join(f'data-{k}="{v}"' for k, v in data_attrs.items())
@@ -99,13 +88,11 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
                 <tr class="{row_class}" {data_str}>
                     <td style="text-align:center; color:var(--text-dim);" class="mono">#{i+1}</td>
                      <td><a href="/deep-diver?ticker={sym}" class="ticker-btn">{sym}</a></td>
+                    <td style="padding-left:5px;" class="mono">{pcp_1h_html}</td>
                     <td style="padding-left:5px;" class="mono hide-on-mobile">{pcp_html}</td>
                     <td style="padding-left:5px;" class="mono">${short_num(token.get('marketcap', 0))}</td>
                     <td style="padding-left:5px;" class="mono">${short_num(token.get('volume', 0))}</td>
                     <td class="mono {vol_class}" style="padding-left:5px;">{vtmr:.2f}x</td>
-                    <td style="text-align:center;">
-                        <button class="action-btn analyze-btn" onclick="handleAction(event, this)">Summary</button>
-                    </td>
                 </tr>
             """)
 
@@ -133,7 +120,7 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
             "order": "market_cap_desc",
             "per_page": 250,
             "page": page,
-            "price_change_percentage": "24h",
+            "price_change_percentage": "1h,24h",
         }
         try:
             async with session.get("https://api.coingecko.com/api/v3/coins/markets", params=params, headers=headers) as resp:
@@ -144,7 +131,7 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
             return None, []
 
     async def fetch_coingecko(session: aiohttp.ClientSession) -> list[dict[str, Any]]:
-        headers = STEALTH_HEADERS.copy()
+        headers = COINGECKO_STEALTH_HEADERS.copy()
         headers["x-cg-demo-api-key"] = COINGECKO_API_KEY
 
         page_range = range(1, SCAN_PAGES + 1)
@@ -160,7 +147,7 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
         for _, page_data in results:
             for t in page_data:
                 symbol = (t.get("symbol") or "").upper()
-                if symbol in STABLECOINS:
+                if is_stablecoin(symbol):
                     continue
                 vol = safe_float(t.get("total_volume"), 0.0)
                 mc = safe_float(t.get("market_cap"), 0.0)
@@ -174,6 +161,7 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
                 price = safe_float(t.get("current_price"), None)
                 pcp = t.get("price_change_percentage_24h")
                 change_24h = safe_float(pcp, None)
+                change_1h = safe_float(t.get("price_change_percentage_1h_in_currency"), None)
 
                 tokens.append({
                     "coin_id": coin_id,
@@ -181,6 +169,7 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
                     "marketcap": mc,
                     "volume": vol,
                     "price": price,
+                    "change_1h": change_1h,
                     "change_24h": change_24h,
                 })
         print(f"    Tokens returned after filter: {len(tokens)} tokens")
@@ -218,6 +207,7 @@ def spot_volume_tracker(user_keys: dict[str, Any], user_id: str | int) -> None:
                 "price": t['price'],
                 "flipping_multiple": ratio,
                 "large_cap": is_large,
+                "change_1h": t.get('change_1h'),
                 "change_24h": t.get('change_24h'),
             })
 

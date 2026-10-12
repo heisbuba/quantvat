@@ -23,14 +23,12 @@ FOLDER_MIME = 'application/vnd.google-apps.folder'
 
 class JournalEngine:
     ROOT_FOLDER_NAME = "Trading Journal"
-    MODE_FOLDER_NAMES = {"normal": "Spot", "meme": "Meme"}
-    VALID_MODES = ("normal", "meme")
     IMAGE_SLOTS = ("before", "after")
     MAX_IMAGE_DIMENSION = 1600  # longest side, px
 
     # --- Auth ---
     @staticmethod
-    def get_flow():
+    def get_flow(scopes=None):
         redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI", "")
         if redirect_uri.startswith("http://"):
             os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -46,7 +44,7 @@ class JournalEngine:
                     "token_uri": "https://oauth2.googleapis.com/token",
                 }
             },
-            scopes=SCOPES,
+            scopes=scopes or SCOPES,
             redirect_uri=os.environ.get("GOOGLE_REDIRECT_URI")
         )
 
@@ -144,35 +142,17 @@ class JournalEngine:
         return folder_id
 
     @classmethod
-    def get_mode_folder_id(cls, service, uid, mode, user_data=None):
-        if mode not in cls.VALID_MODES:
-            raise ValueError(f"Invalid journal mode: {mode}")
+    def get_charts_folder_id(cls, service, uid, month_str, user_data=None):
         if user_data is None:
             user_data = get_user_keys(uid)
 
-        cache_key = f"journal_{mode}_folder_id"
+        cache_key = f"journal_charts_{month_str}_folder_id"
         cached = user_data.get(cache_key)
         if cached:
             return cached
 
         root_id = cls.get_root_folder_id(service, uid, user_data=user_data)
-        folder_id = cls._find_or_create_folder(service, cls.MODE_FOLDER_NAMES[mode], root_id)
-        update_user_keys(uid, {cache_key: folder_id})
-        user_data[cache_key] = folder_id
-        return folder_id
-
-    @classmethod
-    def get_charts_folder_id(cls, service, uid, mode, month_str, user_data=None):
-        if user_data is None:
-            user_data = get_user_keys(uid)
-
-        cache_key = f"journal_{mode}_charts_{month_str}_folder_id"
-        cached = user_data.get(cache_key)
-        if cached:
-            return cached
-
-        mode_folder_id = cls.get_mode_folder_id(service, uid, mode, user_data=user_data)
-        charts_root_id = cls._find_or_create_folder(service, "charts", mode_folder_id)
+        charts_root_id = cls._find_or_create_folder(service, "charts", root_id)
         month_folder_id = cls._find_or_create_folder(service, month_str, charts_root_id)
         update_user_keys(uid, {cache_key: month_folder_id})
         user_data[cache_key] = month_folder_id
@@ -195,8 +175,8 @@ class JournalEngine:
         return "undated"
 
     @classmethod
-    def _month_shard_key(cls, mode, month):
-        return f"journal_{mode}_m_{month}_file_id"
+    def _month_shard_key(cls, month):
+        return f"journal_m_{month}_file_id"
 
     @staticmethod
     def _list_shard_files(service, folder_id):
@@ -216,12 +196,12 @@ class JournalEngine:
         return dict(sorted(shards.items(), reverse=True))
 
     @classmethod
-    def _get_shard_file_id(cls, service, uid, mode, month, mode_folder_id, user_data):
-        key = cls._month_shard_key(mode, month)
+    def _get_shard_file_id(cls, service, uid, month, root_folder_id, user_data):
+        key = cls._month_shard_key(month)
         cached = user_data.get(key)
         if cached:
             return cached
-        shards = cls._list_shard_files(service, mode_folder_id)
+        shards = cls._list_shard_files(service, root_folder_id)
         if month in shards:
             file_id = shards[month]
         else:
@@ -231,7 +211,7 @@ class JournalEngine:
             )
             f = service.files().create(
                 body={'name': f"{cls.SHARD_PREFIX}{month}{cls.SHARD_SUFFIX}",
-                      'parents': [mode_folder_id]},
+                      'parents': [root_folder_id]},
                 media_body=media, fields='id'
             ).execute()
             file_id = f['id']
@@ -240,35 +220,19 @@ class JournalEngine:
         return file_id
 
     @classmethod
-    def _reset_month_cache(cls, uid, mode, month, user_data):
-        key = cls._month_shard_key(mode, month)
+    def _reset_month_cache(cls, uid, month, user_data):
+        key = cls._month_shard_key(month)
         update_user_keys(uid, {key: firestore.DELETE_FIELD})
         if user_data is not None:
             user_data.pop(key, None)
 
     @classmethod
-    def load_mode_journal(cls, service, uid, mode, user_data=None, creds=None):
+    def load_trades(cls, service, uid, user_data=None, creds=None):
         if user_data is None:
             user_data = get_user_keys(uid)
-        mode_folder_id = cls.get_mode_folder_id(service, uid, mode, user_data=user_data)
-        shards = cls._list_shard_files(service, mode_folder_id)
-        if not shards:
-            try:
-                q = (f"name='trades.json' and '{mode_folder_id}' in parents "
-                     f"and trashed=false")
-                leftover = service.files().list(
-                    q=q, spaces='drive', fields='files(id, name)', pageSize=1
-                ).execute()
-                if leftover.get('files'):
-                    from ..config import log_error
-                    log_error(
-                        source="journal_engine",
-                        message=f"Legacy trades.json with no shards for mode={mode} — "
-                                f"data present but unread (migration removed).",
-                        uid=uid,
-                    )
-            except Exception:
-                pass  # detection must never break the load path
+        root_folder_id = cls.get_root_folder_id(service, uid, user_data=user_data)
+        shards = cls._list_shard_files(service, root_folder_id)
+
         def _fetch_one(month, file_id):
             worker_service = (
                 cls.get_drive_service(creds) if creds is not None else service
@@ -278,8 +242,8 @@ class JournalEngine:
             except HttpError as e:
                 if e.resp.status != 404:
                     raise
-                cls._reset_month_cache(uid, mode, month, user_data)
-                fresh = cls._list_shard_files(worker_service, mode_folder_id)
+                cls._reset_month_cache(uid, month, user_data)
+                fresh = cls._list_shard_files(worker_service, root_folder_id)
                 if month in fresh:
                     return cls.load_journal(worker_service, fresh[month])
                 return []
@@ -296,11 +260,11 @@ class JournalEngine:
         return trades
 
     @classmethod
-    def save_trade_v2(cls, service, uid, mode, trade_data, user_data=None):
+    def save_trade(cls, service, uid, trade_data, user_data=None):
         if user_data is None:
             user_data = get_user_keys(uid)
 
-        trade_data['mode'] = mode
+        trade_data.pop('mode', None)
         if 'trade_date' in trade_data:
             try:
                 dt = datetime.datetime.strptime(trade_data['trade_date'], "%Y-%m-%d")
@@ -310,17 +274,17 @@ class JournalEngine:
                 pass
 
         month = cls._trade_month(trade_data)
-        mode_folder_id = cls.get_mode_folder_id(service, uid, mode, user_data=user_data)
+        root_folder_id = cls.get_root_folder_id(service, uid, user_data=user_data)
 
-        file_id = cls._get_shard_file_id(service, uid, mode, month, mode_folder_id, user_data)
+        file_id = cls._get_shard_file_id(service, uid, month, root_folder_id, user_data)
         try:
             journal = cls.load_journal(service, file_id)
         except HttpError as e:
             if e.resp.status != 404:
                 raise
-            # Stale cached shard id — same recovery load_mode_journal uses.
-            cls._reset_month_cache(uid, mode, month, user_data)
-            file_id = cls._get_shard_file_id(service, uid, mode, month, mode_folder_id, user_data)
+            # Stale cached shard id — same recovery load_trades uses.
+            cls._reset_month_cache(uid, month, user_data)
+            file_id = cls._get_shard_file_id(service, uid, month, root_folder_id, user_data)
             journal = cls.load_journal(service, file_id)
 
         trade_id = trade_data.get('id')
@@ -335,7 +299,7 @@ class JournalEngine:
                     updated = True
                     break
             if not updated:
-                for other_month, other_id in cls._list_shard_files(service, mode_folder_id).items():
+                for other_month, other_id in cls._list_shard_files(service, root_folder_id).items():
                     if other_month == month:
                         continue
                     try:
@@ -352,11 +316,11 @@ class JournalEngine:
         return True
 
     @classmethod
-    def get_trade_by_id(cls, service, uid, mode, trade_id, user_data=None):
+    def get_trade_by_id(cls, service, uid, trade_id, user_data=None):
         if user_data is None:
             user_data = get_user_keys(uid)
-        mode_folder_id = cls.get_mode_folder_id(service, uid, mode, user_data=user_data)
-        for _month, file_id in cls._list_shard_files(service, mode_folder_id).items():
+        root_folder_id = cls.get_root_folder_id(service, uid, user_data=user_data)
+        for _month, file_id in cls._list_shard_files(service, root_folder_id).items():
             try:
                 journal = cls.load_journal(service, file_id)
             except HttpError as e:
@@ -369,11 +333,11 @@ class JournalEngine:
         return None
 
     @classmethod
-    def delete_trade_v2(cls, service, uid, mode, trade_id, user_data=None):
+    def delete_trade(cls, service, uid, trade_id, user_data=None):
         if user_data is None:
             user_data = get_user_keys(uid)
-        mode_folder_id = cls.get_mode_folder_id(service, uid, mode, user_data=user_data)
-        for _month, file_id in cls._list_shard_files(service, mode_folder_id).items():
+        root_folder_id = cls.get_root_folder_id(service, uid, user_data=user_data)
+        for _month, file_id in cls._list_shard_files(service, root_folder_id).items():
             try:
                 journal = cls.load_journal(service, file_id)
             except HttpError as e:
@@ -431,7 +395,7 @@ class JournalEngine:
         return f"{full_id}-{ticker}-{date_str}-{slot.capitalize()}.webp"
 
     @classmethod
-    def upload_chart_image(cls, service, uid, mode, trade, slot, file_stream, user_data=None):
+    def upload_chart_image(cls, service, uid, trade, slot, file_stream, user_data=None):
         if slot not in cls.IMAGE_SLOTS:
             raise ValueError(f"Invalid image slot: {slot}")
         if user_data is None:
@@ -443,7 +407,7 @@ class JournalEngine:
                 trade['trade_date'], "%Y-%m-%d"
             ).strftime("%Y-%m")
 
-        folder_id = cls.get_charts_folder_id(service, uid, mode, month_str, user_data=user_data)
+        folder_id = cls.get_charts_folder_id(service, uid, month_str, user_data=user_data)
 
         old_id = trade.get(f"{slot}_image_id")
         if old_id:

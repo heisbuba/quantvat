@@ -44,7 +44,7 @@ class AuditorEngine:
             prompt = "Analyze my execution performance based on the CSV data above. End with: 'I have analyzed your data. Ready for audit.'"
             
             response = client.models.generate_content(
-                model='gemini-3.5-flash', 
+                model='gemini-3.6-flash', 
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=instruction
@@ -103,7 +103,7 @@ class AuditorEngine:
             instruction = f"PERSONA: QuantVAT AI Trading Journal Auditor. Senior Risk Manager.\nDATA:\n{context}"
 
             response = client.models.generate_content(
-                model='gemini-3.5-flash',
+                model='gemini-3.6-flash',
                 contents=contents,
                 config=types.GenerateContentConfig(
                     system_instruction=instruction
