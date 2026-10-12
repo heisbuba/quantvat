@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quantvat-shell-v5.1';
+const CACHE_NAME = 'quantvat-shell-v5.5';
 const STATIC_ASSETS = [
   '/static/icons/icon-192.png',
   '/static/css/shared_tokens.css', 
@@ -9,20 +9,21 @@ const STATIC_ASSETS = [
   '/static/css/home.css',
   '/static/css/deep_diver.css',
   '/static/css/reports_list.css',
-  '/static/css/watchilist.css',
+  '/static/css/watchlist.css',
   '/static/css/info_pages.css',
   '/static/css/admin.css',
   '/static/css/setup.css',
+  '/static/css/chart_browser.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap'
 ];
 
 const NEVER_CACHE_PREFIXES = [
-  '/api/', '/tasks/', '/dashboard', '/settings', '/journal',
+  '/api/', '/dashboard', '/settings', '/journal',
   '/reports', '/admin', '/deep-diver', '/setup', '/watchlist',
   '/save-config', '/save-filters', '/reset-filters', '/factory-reset',
   '/login', '/register', '/reset-password', '/logout',
   '/run-spot', '/run-advanced', '/progress', '/logs-chunk',
-  '/get-futures-data', '/upload-futures', '/quant-diver'
+  '/get-futures-data', '/upload-futures', '/chart-browser'
 ];
 
 // Cache each asset independently so one failure doesn't block the rest
