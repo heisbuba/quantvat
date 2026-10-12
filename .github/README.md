@@ -1,6 +1,6 @@
 # QuantVAT
 
-**QuantVAT** is an ecosystem built for data-driven traders. It tracks volumetric activity, performing cross-market analysis by fusing Spot and Futures data. In addition, it features the Deep Diver Engine for spot analysis and a semi-automated Trading Journal with blunt AI auditing.
+**QuantVAT** is an ecosystem built for data-driven traders. It tracks volumetric activity, performing cross-market analysis by fusing Spot and Futures data. In addition, it features the Deep Diver Engine for spot analysis, Chart Browser for easy deep dives, and Manual Trading Journal with blunt AI auditing.
 
 <p align="center">
   <a href="https://heisbuba-quantvat.hf.space" target="_blank"><img src="https://img.shields.io/badge/Live_Demo-HERE-10b981?style=for-the-badge&logo=huggingface" alt="Live Demo"/></a><a href="https://www.x.com/quantvat" target="_blank"><img src="https://img.shields.io/badge/quantvat-000000?style=for-the-badge&logo=x" alt="X"/></a><a href="https://www.youtube.com/@quantvat" target="_blank"><img src="https://img.shields.io/badge/@quantvat-FF0000?style=for-the-badge&logo=youtube" alt="YouTube"/></a><a href="https://www.quantvat.name.ng" target="_blank"><img src="https://img.shields.io/badge/quantvat.name.ng-ffffff?style=for-the-badge&logo=blogger" alt="Blog"/></a>
@@ -14,7 +14,8 @@
 | **VTMR Logic Engine** | Custom Volume-to-MarketCap Ratio metric to identify divergence between trading activity and valuation |
 | **OISS & Funding Analysis** | Open Interest Signal Score + funding rate analytics |
 | **Deep Diver Engine** | Dedicated spot token browser with quantitative volumetric analysis (VTPC, VTMR, velocity metrics) |
-| **AI-Powered Trading Journal** | Semi-automated journal with blunt AI auditing to detect patterns in execution and psychology |
+| **AI-Powered Trading Journal** | Manual trading journal with blunt AI auditing to detect patterns in execution and psychology |
+| **Chart Browser** | Read-only chart browser for doing deep dives on setups uploaded to Google Drive |
 | **Automated Reporting** | Generate professional, data-driven reports directly in your browser |
 | **PWA Support** | Install as a native app for instant access (iOS/Android/Desktop) |
 
@@ -77,6 +78,7 @@ We welcome contributions! This project is **MIT Licensed** — free to use, modi
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v4.8** | Oct 12, 2026 | Made upgrades, restructuring, added Chart Browser, and overhaul Meme Journal mode. 
 | **v4.7** | Sep 24, 2026 | Made many upgrades and optimizations, and removed PDF generation, keeping only HTML. 
 | **v4.6** | Aug 4, 2026 | Enhanced futures PDF parser, cross‑platform data extraction, code restructure |
 | **v4.5** | Feb 12, 2026 | Major UI/UX fix, AI Trading Journal, Deep Diver Engine, PWA support |
