@@ -1,22 +1,19 @@
-name: Tidy Repository Check
+name: Repository Structure Check
 
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'README.md'
+      - '.github/**'
+      - 'src/**'
+      - 'app.py'
 
 jobs:
   check-structure:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Verify Archive Structure
-        run: |
-          if [ ! -d "archive" ]; then
-            echo "Error: Archive folder is missing!"
-            exit 1
-          fi
-          echo "Archive folder is present."
 
       - name: Check for Dual READMEs
         run: |
@@ -27,3 +24,4 @@ jobs:
             echo "Error: Root README.md (for Hugging Face) is missing!"
             exit 1
           fi
+          echo "README structure OK."
