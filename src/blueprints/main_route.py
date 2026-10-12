@@ -8,9 +8,9 @@ from firebase_admin import auth as firebase_auth
 
 from ..config import get_user_keys, update_user_keys, is_user_setup_complete, db, get_global_stats, increment_global_stat, increment_global_stat_count, firestore, get_recent_errors, clear_error_logs, invalidate_user_cache
 from ..state import USER_PROGRESS, get_user_temp_dir, TEMP_DIR
-from .auth import login_required
+from .auth_route import login_required
 from ..services.journal_engine import JournalEngine
-from ..services.auditor_engine import AuditorEngine
+from ..services.chart_browser_engine import ChartBrowserEngine, TOKEN_FIELD as CB_TOKEN_FIELD, LAST_FOLDER_FIELD as CB_LAST_FOLDER_FIELD
 
 main_bp = Blueprint('main', __name__)
 
@@ -85,28 +85,17 @@ def settings():
     uid = session['user_id']
     current_keys = get_user_keys(uid)
     drive_linked = "google_refresh_token" in current_keys
+    # The Chart Browser has its own, separate Google connection (read-only).
+    browser_linked = bool(current_keys.get(CB_TOKEN_FIELD))
+    browser_last_folder = (current_keys.get(CB_LAST_FOLDER_FIELD) or {}).get("name", "")
     return render_template("dashboard/settings.html",
         cg=current_keys.get("COINGECKO_API_KEY", ""),
         vtmr=current_keys.get("COINALYZE_VTMR_URL", ""),
         drive_linked=drive_linked,
-        journal_mode_pref=current_keys.get("journal_mode_pref", "both"),
+        browser_linked=browser_linked,
+        browser_last_folder=browser_last_folder,
         user_settings=current_keys
     )
-
-@main_bp.route("/settings/save_journal_mode", methods=["POST"])
-@login_required
-def save_journal_mode():
-    uid = session['user_id']
-    mode_pref = request.form.get("journal_mode_pref", "both")
-    if mode_pref not in ("normal", "meme", "both"):
-        mode_pref = "both"
-
-    if update_user_keys(uid, {"journal_mode_pref": mode_pref}):
-        flash("Journal mode preference updated!", "success")
-    else:
-        flash("Could not save journal mode preference.", "error")
-
-    return redirect(url_for('main.settings'))
 
 @main_bp.route("/save-config", methods=["POST"])
 @login_required
@@ -178,6 +167,11 @@ def delete_account():
     except Exception as e:
         print(f"Delete Account Firestore Error: {e}")
 
+    try:
+        ChartBrowserEngine.purge_cache(uid)   # cached Drive images live in /tmp until removed
+    except Exception as e:
+        print(f"Delete Account Image Cache Error: {e}")
+
     session.clear()
     flash("Your account has been permanently deleted.", "success")
     return redirect(url_for('main.index'))
@@ -191,14 +185,6 @@ def help_page():
 def privacy_policy():
     setup_status = is_user_setup_complete(session['user_id']) if 'user_id' in session else False
     return render_template("pages/privacy-policy.html", is_setup_complete=setup_status)
-
-@main_bp.route("/deep-diver")
-@login_required
-def deep_diver():
-    uid = session['user_id']
-    if not is_user_setup_complete(uid):
-        return redirect(url_for('main.setup'))
-    return render_template("dashboard/deep_diver.html")
 
 # --- Administration --- #
 
@@ -388,26 +374,6 @@ def delete_report(filename):
 
     return redirect(url_for('main.reports_list'))
 
-# --- Trading Journal --- #
-
-@main_bp.route("/journal")
-@login_required
-def trading_journal():
-    # Page shell only — deliberately makes zero Drive API calls.
-    uid = session['user_id']
-    user_keys = get_user_keys(uid)
-    drive_linked = "google_refresh_token" in user_keys
-    journal_mode_pref = user_keys.get("journal_mode_pref", "both")
-    if journal_mode_pref not in ("normal", "meme", "both"):
-        journal_mode_pref = "both"
-
-    return render_template(
-        "dashboard/trading_journal.html",
-        drive_linked=drive_linked,
-        journal_mode_pref=journal_mode_pref,
-        user_settings=user_keys
-    )
-
 # --- Service Worker & PWA --- #
 
 @main_bp.route('/manifest.json')
@@ -421,60 +387,6 @@ def serve_sw():
     response.headers['Content-Type'] = 'application/javascript'
     response.headers['Service-Worker-Allowed'] = '/'
     return response
-
-# --- API & AI Integration --- #
-
-@main_bp.route('/settings/save_ai_key', methods=['POST'])
-@login_required
-def save_ai_key():
-    # Native form submission for Gemini API key persistence
-    api_key = request.form.get('api_key', '').strip()
-    
-    if not api_key:
-        flash('API Key cannot be empty.', 'error')
-        return redirect(url_for('main.settings'))
-        
-    try:
-        uid = session.get('user_id')
-        update_user_keys(uid, {'gemini_key': api_key})
-        flash('Gemini API Key saved successfully!', 'success')
-    except Exception as e:
-        print(f"Surgery Log Error: {e}")
-        flash('Failed to update AI settings.', 'error')
-        
-    return redirect(url_for('main.settings'))
-
-@main_bp.route("/api/ai/init_audit", methods=["POST"])
-@login_required
-def init_audit():
-    data = request.get_json(silent=True) or {}
-    csv_context = (data.get('csv_context') or '').strip() 
-    uid = session['user_id']
-    
-    # Validation: Ensure we aren't sending empty prompts
-    if not csv_context:
-        return jsonify({"status": "error", "message": "No data provided for audit."}), 400
-
-    response_text = AuditorEngine.initialize_firebase_session(uid, csv_context)
-
-    text = (response_text or '').strip()
-    if not text or text.startswith(('Error:', 'ERROR', 'Could not', 'Failed to')):
-        return jsonify({"status": "error", "message": text or "Empty response"}), 400
-        
-    return jsonify({"status": "success", "response": response_text})
-
-@main_bp.route("/api/ai/chat", methods=["POST"])
-@login_required
-def ai_chat():
-    # Handle multi-turn conversation using Firebase-stored chat history
-    data = request.get_json(silent=True) or {}
-    prompt = (data.get('prompt') or '').strip()
-    if not prompt:
-        return jsonify({"status": "error", "message": "Empty prompt."}), 400
-    uid = session['user_id']
-    response_text = AuditorEngine.continue_firebase_chat(uid, prompt)
-    
-    return jsonify({"status": "success", "response": response_text})
 
 @main_bp.route('/sitemap.xml')
 def sitemap():
