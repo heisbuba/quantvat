@@ -20,11 +20,18 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="2" y1="14" x2="6" y2="14"></line><line x1="10" y1="8" x2="14" y2="8"></line><line x1="18" y1="16" x2="22" y2="16"></line></svg>
             Filters
         </button>
-        <a href="{{ url_for('main.deep_diver') }}" class="nav-item">
+        <a href="{{ url_for('deep_diver.deep_diver') }}" class="nav-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             Deep Diver
         </a>
-        <a href="{{ url_for('main.trading_journal') }}" class="nav-item">
+        <a href="{{ url_for('main.watchlist_page') }}" class="nav-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            Watchlist
+        </a>
+        <a href="{{ url_for('journal.trading_journal') }}" class="nav-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -34,12 +41,13 @@
             </svg>
             Journal
         </a>
-        <a href="{{ url_for('main.watchlist_page') }}" class="nav-item">
+        <a href="{{ url_for('chart_browser.page') }}" class="nav-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
             </svg>
-            Watchlist
+            Charts
         </a>
     </div>
 
@@ -71,7 +79,7 @@
         <span id="percent" style="font-size:0.8rem; font-weight:bold; color:var(--accent-green);">0%</span>
     </div>
     <div class="progress-bar"><div id="bar" class="progress-fill"></div></div>
-    <div class="terminal" id="term"><div class="log-line">> System Ready...</div></div>
+    <div class="terminal" id="term"><div class="log-line">▸ System Ready...</div></div>
 
     {% if is_admin %}
         <div style="margin-top: 25px; display: flex; justify-content: center;">
@@ -151,5 +159,15 @@
   };
 </script>
 <script src="{{ url_for('static', filename='js/home.js') }}" defer></script>
+<script>
+  // Quietly warm the Image
+  (function () {
+    var warm = function () {
+      try { fetch("{{ url_for('chart_browser.api_warm') }}", { credentials: 'same-origin', keepalive: true }); } catch (e) {}
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 3000 });
+    else setTimeout(warm, 1500);
+  })();
+</script>
 {% include 'includes/partials/pwa_prompt.html' %}
 {% endblock %}

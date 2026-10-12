@@ -10,9 +10,9 @@
         {% for category, message in messages %}
           <div class="{{ category }}-message">
             {% if category == 'success' %}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-sm"><polyline points="20 6 9 17 4 12"></polyline></svg>
             {% else %}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-sm"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             {% endif %}
             {{ message }}
           </div>
@@ -22,20 +22,20 @@
 
     {% if success %}
       <div class="success-message">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-sm"><polyline points="20 6 9 17 4 12"></polyline></svg>
         {{ success }}
       </div>
     {% endif %}
 
     <h1>
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg">
         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
       </svg>
       Settings
     </h1>
 
     <div class="card">
-        <p style="text-align:center; color:#848e9c; font-size:0.9rem;">
+        <p class="card-intro">
             Manage your API configuration and account settings
         </p>
     </div>
@@ -45,127 +45,125 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="source" value="settings">
         <div class="card">
-            <h2 style="color: var(--accent-green);">API Configuration</h2>
-            <p style="color:#848e9c; font-size:0.9rem; margin-bottom:15px;">Update your API keys anytime</p>
+            <h2>API Configuration</h2>
+            <p class="card-desc">Update your API keys anytime</p>
 
             <label>CoinGecko Key</label>
-           <div class="input-with-toggle">
-            <input type="password" id="cgKeyInput" name="cg_key" value="{{ cg }}" required>
-            <button type="button" class="toggle-visibility-btn" onclick="toggleFieldVisibility('cgKeyInput', this)" title="Toggle Visibility">
-             <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                <svg class="icon-eye-off" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-            </button>
-         </div>
+            <div class="input-with-toggle">
+                <input type="password" id="cgKeyInput" name="cg_key" value="{{ cg }}" required>
+                <button type="button" class="toggle-visibility-btn" onclick="toggleFieldVisibility('cgKeyInput', this)" title="Toggle Visibility">
+                    <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </button>
+            </div>
 
-            <label style="margin-top:10px; display:block;">VTMR URL</label>
+            <label class="mt-10-block">VTMR URL</label>
             <input type="text" name="vtmr_url" value="{{ vtmr }}" required>
 
-            <button type="submit" class="btn btn-green" style="margin-top: 15px;">UPDATE SETTINGS</button>
+            <button type="submit" class="btn btn-green mt-15">UPDATE SETTINGS</button>
         </div>
     </form>
 
-    <!-- Unified Trading Journal Card -->
     <div class="card">
-        <h2 style="color: var(--accent-green);">Trading Journal</h2>
-        <p style="color:#848e9c; font-size:0.9rem; margin-bottom:15px;">
-            Connect your Google Drive, select display options, and configure AI auditing.
+        <div class="card-head">
+            <h2>Trading Journal</h2>
+        </div>
+        <p class="card-desc">
+            Manage Google Drive connection and configure AI auditing.
         </p>
-
-        <!-- Sub-section 1: Cloud Storage Sync -->
         <div class="card-section">
-            <label class="card-label">CLOUD STORAGE SYNC</label>
             {% if drive_linked %}
-                <form action="{{ url_for('tasks.google_disconnect') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-red">
-                        DISCONNECT DRIVE
-                    </button>
-                </form>
+                <div class="conn-row">
+                    <div class="conn-meta">Drive Sync</div>
+                    <form action="{{ url_for('journal.google_disconnect') }}" method="POST" class="form-plain">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-sm btn-sm-red">DISCONNECT</button>
+                    </form>
+                </div>
             {% else %}
-                <a href="{{ url_for('tasks.google_login') }}" class="btn btn-green" style="text-decoration: none; display: block; text-align: center;">
-                    CONNECT GOOGLE DRIVE
+                <a href="{{ url_for('journal.google_login') }}" class="btn btn-green btn-block">
+                    CONNECT G-DRIVE
                 </a>
             {% endif %}
         </div>
 
         {% if drive_linked %}
-            <!-- Sub-section 2: Journal Display Mode -->
-            <div class="card-section">
-                <label class="card-label">DISPLAY MODE</label>
-                <form id="journalModeForm" action="{{ url_for('main.save_journal_mode') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div class="journal-mode-switcher">
-                        <input type="radio" id="jm-normal" name="journal_mode_pref" value="normal"
-                               {% if journal_mode_pref == 'normal' %}checked{% endif %}
-                               onchange="document.getElementById('journalModeForm').submit()">
-                        <label for="jm-normal">SPOT</label>
-                        
-                        <input type="radio" id="jm-meme" name="journal_mode_pref" value="meme"
-                               {% if journal_mode_pref == 'meme' %}checked{% endif %}
-                               onchange="document.getElementById('journalModeForm').submit()">
-                        <label for="jm-meme">MEME</label>
-                        
-                        <input type="radio" id="jm-both" name="journal_mode_pref" value="both"
-                               {% if journal_mode_pref == 'both' or not journal_mode_pref %}checked{% endif %}
-                               onchange="document.getElementById('journalModeForm').submit()">
-                        <label for="jm-both">BOTH</label>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Sub-section 3: AI Auditor Config -->
             <div class="card-section">
                 <label class="card-label">AI AUDITOR CONFIG</label>
-                <p style="color:#848e9c; font-size:0.85rem; margin-bottom:12px;">
+                <p class="section-note">
                     Provide your <strong>Google Gemini Flash API key</strong> to enable deep, blunt, and honest analysis of your synced trading journal.
                 </p>
-                <form action="{{ url_for('main.save_ai_key') }}" method="POST">
+                <form action="{{ url_for('auditor.save_ai_key') }}" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="source" value="settings">
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                     <label style="font-size:0.85rem; margin: 0;">
+                    <div class="label-row">
+                        <label class="label-compact">
                             Gemini API Key
                         </label>
-                      <a href="https://aistudio.google.com/" target="_blank" class="get-key-link" style="font-size:0.85rem; text-decoration: none;">
-                        Get Key 
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-left: 2px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                         </a>
+                        <a href="https://aistudio.google.com/" target="_blank" class="get-key-link">
+                            Get Key 
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>
                     </div>
                     
                     <div class="input-with-toggle">
-                       <input type="password" id="geminiKeyInput" name="api_key" 
-                             value="{{ user_settings.gemini_key if user_settings and user_settings.gemini_key else '' }}" 
+                        <input type="password" id="geminiKeyInput" name="api_key" 
+                               value="{{ user_settings.gemini_key if user_settings and user_settings.gemini_key else '' }}" 
                                placeholder="Optional: Paste key here...">
-                           <button type="button" class="toggle-visibility-btn" onclick="toggleFieldVisibility('geminiKeyInput', this)" title="Toggle Visibility">
-                           <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                           <svg class="icon-eye-off" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                              </button>
-                     </div>
-                    <button type="submit" class="btn btn-green" style="margin-top:15px;">UPDATE KEY</button>
+                        <button type="button" class="toggle-visibility-btn" onclick="toggleFieldVisibility('geminiKeyInput', this)" title="Toggle Visibility">
+                            <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <svg class="icon-eye-off" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        </button>
+                    </div>
+                    <button type="submit" class="btn btn-green mt-15">UPDATE KEY</button>
                 </form>
             </div>
         {% else %}
             <div class="card-section">
                 <p class="card-notice">
-                    <em>Connect Google Drive to configure your journal display mode and AI Auditor settings.</em>
+                    <em>Connect Google Drive to configure your AI Auditor settings.</em>
                 </p>
             </div>
         {% endif %}
     </div>
 
-    <!-- Danger Zone -->
-    <div class="card" style="border-color: var(--accent-red); background: rgba(246,70,93,0.05);">
-        <h2 style="color:var(--accent-red); margin-top:0;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
+    <div class="card">
+        <div class="card-head">
+            <h2>Chart Browser</h2>
+        </div>
+        <p class="card-desc">
+            Do a deep dive by browsing chart snaps from your Google Drive.
+        </p>
+        <div class="card-section">
+            {% if browser_linked %}
+                <div class="conn-row">
+                    <div class="conn-meta">
+                        Folder Access
+                    </div>
+                    <form action="{{ url_for('chart_browser.disconnect') }}" method="POST" class="form-plain" onsubmit="clearChartBrowserLocalCache()">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-sm btn-sm-red">DISCONNECT</button>
+                    </form>
+                </div>
+            {% else %}
+                <a href="{{ url_for('chart_browser.connect') }}" class="btn btn-green btn-block">
+                    CONNECT G-DRIVE
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card card-danger">
+        <h2 class="danger-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-md">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
             <line x1="12" y1="9" x2="12" y2="13"></line>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
           Danger Zone
         </h2>
-        <p style="font-size:0.85rem; color:#848e9c;">Reset application configuration or permanently delete your account.</p>
-        
+        <p class="danger-desc">Reset app configuration or permanently delete your account.</p>
         <div class="danger-actions">
             <button type="button" class="btn btn-red" onclick="openModal('resetModal')">FACTORY RESET</button>
             <button type="button" class="btn btn-red" onclick="openModal('deleteAccountModal')">DELETE ACCOUNT</button>
@@ -173,7 +171,6 @@
     </div>
 </div>
 
-<!-- Modal 1: Factory Reset -->
 <div id="resetModal" class="modal-overlay">
     <div class="modal-box">
         <svg class="modal-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -181,21 +178,20 @@
           <line x1="12" y1="9" x2="12" y2="13"></line>
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
-        <div class="modal-title">Are you absolutely sure?</div>
+        <div class="modal-title">Are you sure?</div>
         <div class="modal-text">
             This action cannot be undone. All your saved API keys configuration and AI Auditor memory will be permanently deleted.
         </div>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModal('resetModal')">CANCEL</button>
-            <form action="{{ url_for('main.factory_reset') }}" method="POST" style="margin:0; width:100%;">
+            <form action="{{ url_for('main.factory_reset') }}" method="POST" class="modal-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn-delete" style="margin-top:0; width:100%; display:flex; align-items:center; justify-content:center;">YES, RESET IT</button>
+                <button type="submit" class="btn-delete modal-btn-delete">YES, RESET IT</button>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal 2: Delete Account -->
 <div id="deleteAccountModal" class="modal-overlay">
     <div class="modal-box">
         <svg class="modal-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -219,7 +215,7 @@
 
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModal('deleteAccountModal')">CANCEL</button>
-            <form action="{{ url_for('main.delete_account') }}" method="POST" style="margin:0; width:100%;">
+            <form action="{{ url_for('main.delete_account') }}" method="POST" class="modal-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button 
                     type="submit" 
@@ -235,6 +231,14 @@
 </div>
 
 <script>
+    function clearChartBrowserLocalCache() {
+        try {
+            Object.keys(sessionStorage)
+                .filter(function (k) { return k.indexOf('cb:') === 0; })
+                .forEach(function (k) { sessionStorage.removeItem(k); });
+        } catch (e) {}
+    }
+
     function openModal(modalId) {
         document.getElementById(modalId).style.display = 'flex';    
 
@@ -266,7 +270,6 @@
         btn.classList.toggle('is-enabled', isValid);
     }
 
-    // Close when clicking overlay backdrop for all modals
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) closeModal(this.id);

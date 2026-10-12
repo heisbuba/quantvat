@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Chart Browser - QuantVAT{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chart_browser.css') }}">
+{% endblock %}
+{% block content %}
+<div class="container wide cb-page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="cb-flash {{ 'cb-flash-ok' if category == 'success' else 'cb-flash-err' }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="card cb-header">
+        <h1 class="cb-title">CHART <span class="cb-title-accent">BROWSER</span></h1>
+        <p class="cb-subtitle">BROWSE CHART SCREENSHOTS FROM YOUR GOOGLE DRIVE</p>
+    </section>
+
+    {% if not connected %}
+    <section class="card cb-connect">
+        <h2 class="cb-connect-title">Connect Google Drive</h2>
+        <p class="cb-muted">
+            The Browser needs <strong>read-only</strong> access to list your folders and show the images inside them.
+            It never edits, moves or deletes anything in your Drive. This is separate from the Trading Journal connection.
+        </p>
+        <a href="{{ url_for('chart_browser.connect') }}" class="cb-btn cb-btn-primary cb-btn-block">CONNECT GOOGLE DRIVE</a>
+    </section>
+    {% else %}
+
+    <section class="card cb-picker" id="cb-picker" hidden>
+        <div class="cb-picker-top">
+            <div class="cb-tabs" role="tablist">
+                <button type="button" class="cb-tab is-active" id="cb-tab-root" role="tab">My Drive</button>
+                <button type="button" class="cb-tab" id="cb-tab-shared" role="tab">Shared with me</button>
+            </div>
+            <button type="button" class="cb-btn cb-btn-ghost" id="cb-back-viewer" hidden>BACK TO IMAGES</button>
+        </div>
+
+        <div class="cb-pathbar">
+            <button type="button" class="cb-btn cb-btn-ghost cb-icon-only" id="cb-up" title="Up one level" aria-label="Up one level">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="cb-path-name" id="cb-path-name">My Drive</div>
+            <button type="button" class="cb-btn cb-btn-primary" id="cb-open-here">VIEW IMAGES HERE</button>
+        </div>
+
+        <div class="cb-folder-list" id="cb-folder-list"></div>
+        <div class="cb-status" id="cb-picker-status"></div>
+    </section>
+
+    <section class="cb-viewer" id="cb-viewer" hidden>
+        <div class="cb-viewer-bar">
+            <div class="cb-folder-title" id="cb-folder-title"></div>
+            <div class="cb-bar-actions">
+                <select class="cb-select" id="cb-sort" aria-label="Sort images">
+                    <option value="oldest" selected>Oldest first</option>
+                    <option value="newest">Newest first</option>
+                    <option value="name">Name</option>
+                </select>
+                <button type="button" class="cb-btn cb-btn-ghost" id="cb-change-folder">CHANGE FOLDER</button>
+            </div>
+        </div>
+
+        <div class="cb-stage" id="cb-stage" tabindex="0">
+            <div class="cb-slide" id="cb-slide">
+                <img class="cb-img" id="cb-img" alt="" draggable="false">
+            </div>
+            <div class="cb-loading" id="cb-loading" hidden><div class="cb-spinner"></div></div>
+            <div class="cb-error" id="cb-error" hidden>
+                <p id="cb-error-text">Could not load this image.</p>
+                <button type="button" class="cb-btn cb-btn-ghost" id="cb-retry">RETRY</button>
+            </div>
+            <div class="cb-empty" id="cb-empty" hidden>No supported images in this folder.</div>
+
+            <button type="button" class="cb-nav cb-nav-prev" id="cb-prev" aria-label="Previous image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button type="button" class="cb-nav cb-nav-next" id="cb-next" aria-label="Next image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+
+            <div class="cb-counter" id="cb-counter">
+                <input type="number" class="cb-jump" id="cb-jump" min="1" value="1" inputmode="numeric" aria-label="Go to image number">
+                <span class="cb-counter-sep">/</span>
+                <span id="cb-total">0</span>
+            </div>
+        </div>
+
+        <div class="cb-caption">
+            <div class="cb-filename" id="cb-filename"></div>
+            <div class="cb-meta" id="cb-meta"></div>
+        </div>
+
+        <div class="cb-toolbar">
+            <button type="button" class="cb-tool" id="cb-play" title="Slideshow (Space)">
+                <svg class="cb-ic-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                <svg class="cb-ic-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                <span>Slideshow</span>
+            </button>
+            <button type="button" class="cb-tool" id="cb-zoom" title="Zoom (double-click or +/-)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                <span>Zoom</span>
+            </button>
+            <button type="button" class="cb-tool" id="cb-fullscreen" title="Fullscreen (F)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                <span>Fullscreen</span>
+            </button>
+            <a class="cb-tool" id="cb-download" href="#" title="Download this image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Download</span>
+            </a>
+            <a class="cb-tool" id="cb-drive-link" href="#" target="_blank" rel="noopener noreferrer" title="Open in Google Drive">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                <span>Open in Drive</span>
+            </a>
+            <button type="button" class="cb-tool" id="cb-preload" title="Download every image in this folder to temporary storage">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"></path><polyline points="9 5 12 8 15 5"></polyline><path d="M20 14v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5"></path><line x1="8" y1="14" x2="16" y2="14"></line></svg>
+                <span id="cb-preload-label">Preload all</span>
+            </button>
+            <button type="button" class="cb-tool" id="cb-refresh" title="Re-read this folder from Drive">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                <span>Refresh</span>
+            </button>
+            <button type="button" class="cb-tool" id="cb-clear" title="Delete temporary copies of images">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                <span>Clear cache</span>
+            </button>
+        </div>
+        <div class="cb-toast" id="cb-toast" hidden></div>
+    </section>
+    {% endif %}
+</div>
+
+{% if connected %}
+<script>
+  window.CB = {
+    csrf: "{{ csrf_token() }}",
+    lastFolder: {{ last_folder|tojson }},
+    urls: {
+      folders:    "{{ url_for('chart_browser.api_folders') }}",
+      images:     "{{ url_for('chart_browser.api_images') }}",
+      image:      "{{ url_for('chart_browser.api_image', file_id='FILE_ID') }}",
+      clearCache: "{{ url_for('chart_browser.api_clear_cache') }}",
+      connect:    "{{ url_for('chart_browser.connect') }}"
+    }
+  };
+</script>
+<script src="{{ url_for('static', filename='js/chart_browser.js') }}" defer></script>
+{% else %}
+<script>
+  // Disconnected: drop the instant-open copies of folder/file names kept in this tab.
+  try {
+    Object.keys(sessionStorage).filter(function (k) { return k.indexOf('cb:') === 0; })
+      .forEach(function (k) { sessionStorage.removeItem(k); });
+  } catch (e) {}
+</script>
+{% endif %}
+{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Deep Diver - QuantVAT{% endblock %}  
+{% block title %}Deep Diver - QuantVAT{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/deep_diver.css') }}">
 {% endblock %}
@@ -8,31 +8,31 @@
     <section class="card quant-header">
         <div class="header-content">
             <h1 class="glow-text">DEEP <span class="text-main">DIVER</span></h1>
-            <p class="subtitle">QUANTITATIVE SPOT TOKENS VOLUMETRIC ANALYSIS ENGINE</p>
+            <p class="subtitle">QUANTITATIVE SPOT VOLUME &amp; LIQUIDITY ANALYSIS</p>
         </div>
-        
+
         <div class="search-container">
             <div class="search-wrapper" id="search-box-container">
                 <svg class="search-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                
+
                 <input type="text" id="token-input" placeholder="Search Ticker (e.g. BTC)..." autocomplete="off">
             </div>
-            
+
             <div id="search-results" class="search-dropdown"></div>
         </div>
     </section>
 
-    <div id="skeleton-container" style="display:none; margin-top: 20px;">
-        <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+    <div id="skeleton-container" hidden>
+        <div class="grid skeleton-stats">
             <div class="skeleton-card mini"></div>
             <div class="skeleton-card mini"></div>
             <div class="skeleton-card mini"></div>
             <div class="skeleton-card mini"></div>
         </div>
-        <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 15px;">
+        <div class="grid skeleton-panels">
             <div class="skeleton-card tall"></div>
             <div class="skeleton-card tall"></div>
         </div>
@@ -41,13 +41,24 @@
     <div id="matrix-content">
 
         <div class="action-dock">
-            <a id="link-cg" href="#" target="_blank" rel="noopener noreferrer" class="btn-action">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path fill="#8CC63F" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.818c-5.422 0-9.818-4.396-9.818-9.818S6.578 2.182 12 2.182 21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/>
-                    <path fill="#8CC63F" d="M17.008 7.538c-.25-.213-1.018-.735-1.922-.735-1.99 0-2.81 1.688-2.81 1.688s-.522.956-1.074.956c-.553 0-1.026-1.107-2.9-1.107-1.876 0-2.73 1.58-2.73 1.58s-1.875 3.328.72 6.703c1.94 2.52 4.49 2.19 4.49 2.19.784-.064 1.458-.61 2.05-1.127.42-.366 1.05-.224 1.342.23.23.36.08.835-.34 1.144-.81.597-1.81 1.106-3.05 1.106-2.95 0-5.27-2.22-6.52-3.84-2.26-2.94-1.29-6.93 1.95-8.24 1.84-.74 3.4.15 3.8.44.05-.33.25-.86.69-1.22.8-.66 2.08-.66 2.92 0 .44.35.63.89.68 1.22.4-.29 1.96-1.18 3.8-.44 3.24 1.31 4.21 5.3 1.95 8.24-.65.84-1.46 1.57-2.4 2.12-.39.23-.9.1-1.13-.29-.23-.39-.1-.9.29-1.13.73-.42 1.38-.99 1.9-1.66 1.76-2.29 1.09-5.1-1.13-6.58-1.28-.85-2.85-.45-3.52.09-.4.32-.6 1.04-.6 1.04l-.87-.45s-.16-.76-.6-1.11c-.67-.54-1.8-.82-2.74-.23zm-8.8 3.12c-.52.53-.45 1.38.16 1.83.6.45 1.47.38 1.99-.15.52-.53.45-1.38-.16-1.83-.6-.45-1.47-.38-1.99.15zm7.62.15c.52.53 1.39.6 1.99.15.61-.45.68-1.3.16-1.83-.52-.53-1.39-.6-1.99-.15-.61.45-.68 1.3-.16 1.83z"/>
-                </svg>
-                CoinGecko
-            </a>
+            <div class="split-pill">
+                <a id="link-cg" href="#" target="_blank" rel="noopener noreferrer" class="btn-action">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#8CC63F" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.818c-5.422 0-9.818-4.396-9.818-9.818S6.578 2.182 12 2.182 21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/>
+                        <path fill="#8CC63F" d="M17.008 7.538c-.25-.213-1.018-.735-1.922-.735-1.99 0-2.81 1.688-2.81 1.688s-.522.956-1.074.956c-.553 0-1.026-1.107-2.9-1.107-1.876 0-2.73 1.58-2.73 1.58s-1.875 3.328.72 6.703c1.94 2.52 4.49 2.19 4.49 2.19.784-.064 1.458-.61 2.05-1.127.42-.366 1.05-.224 1.342.23.23.36.08.835-.34 1.144-.81.597-1.81 1.106-3.05 1.106-2.95 0-5.27-2.22-6.52-3.84-2.26-2.94-1.29-6.93 1.95-8.24 1.84-.74 3.4.15 3.8.44.05-.33.25-.86.69-1.22.8-.66 2.08-.66 2.92 0 .44.35.63.89.68 1.22.4-.29 1.96-1.18 3.8-.44 3.24 1.31 4.21 5.3 1.95 8.24-.65.84-1.46 1.57-2.4 2.12-.39.23-.9.1-1.13-.29-.23-.39-.1-.9.29-1.13.73-.42 1.38-.99 1.9-1.66 1.76-2.29 1.09-5.1-1.13-6.58-1.28-.85-2.85-.45-3.52.09-.4.32-.6 1.04-.6 1.04l-.87-.45s-.16-.76-.6-1.11c-.67-.54-1.8-.82-2.74-.23zm-8.8 3.12c-.52.53-.45 1.38.16 1.83.6.45 1.47.38 1.99-.15.52-.53.45-1.38-.16-1.83-.6-.45-1.47-.38-1.99.15zm7.62.15c.52.53 1.39.6 1.99.15.61-.45.68-1.3.16-1.83-.52-.53-1.39-.6-1.99-.15-.61.45-.68 1.3-.16 1.83z"/>
+                    </svg>
+                    CoinGecko
+                </a>
+                <button id="btn-copy-cg" type="button" class="btn-action" title="Copy CoinGecko link" aria-label="Copy CoinGecko link">
+                    <svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </button>
+            </div>
 
             <a id="link-tv" href="#" target="_blank" rel="noopener noreferrer" class="btn-action">
                 <svg viewBox="0 0 45 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -55,9 +66,9 @@
                 </svg>
                 TradingView
             </a>
-            
-            <button id="btn-watchlist" type="button" class="btn-action" onclick="toggleWatchlist()">
-                <svg id="star-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px; height:14px;">
+
+            <button id="btn-watchlist" type="button" class="btn-action">
+                <svg id="star-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>
                 <span id="watchlist-text">Watchlist</span>
@@ -79,40 +90,41 @@
                 <div class="d-row"><span>MCAP</span><span class="mono" id="v-mcap">--</span></div>
                 <div class="d-row"><span>VOL 24H</span><span class="mono" id="v-vol">--</span></div>
                 <div class="d-row"><span>TOTAL SUPPLY</span><span class="mono" id="v-supply">--</span></div>
+                <div class="d-row"><span>CHAIN</span><span class="mono" id="v-chain">--</span></div>
             </div>
-          
+
             <div class="card stats-panel accent-border">
-                <div class="panel-tag" style="color: var(--accent-green);">QUANT RATIOS</div>
+                <div class="panel-tag">QUANT RATIOS</div>
                 <div class="d-row" title="Volume to Market Cap"><span>VTMR</span><span class="mono" id="v-vtmr">--</span></div>
                 <div class="d-row" title="Volume to Price Change"><span>VTPC</span><span class="mono" id="v-vtpc">--</span></div>
-                 <div class="d-row" title="Aggregate DEX liquidity"><span>DEX LIQ.</span><span class="mono" id="v-liquidity">--</span></div>
+                <div class="d-row" title="Aggregate DEX liquidity"><span>DEX LIQ.</span><span class="mono" id="v-liquidity">--</span></div>
                 <div class="d-row" title="Aggregated cost to move price +2% across top liquid markets"><span>DEPTH +2%</span><span class="mono" id="v-depth-up">--</span></div>
                 <div class="d-row" title="Aggregated cost to move price -2% across top liquid markets"><span>DEPTH -2%</span><span class="mono" id="v-depth-down">--</span></div>
             </div>
         </div>
-      
+
         <div class="card stats-panel">
-                <div class="panel-tag">PAST MONTH STATS</div>
-                <div class="d-row" title="Mean daily volume over the last 7 days"><span>AVG 7D DAILY VOLUME</span><span class="mono" id="v-avg-7d-vol">--</span></div>
-                <div class="d-row" title="Mean daily volume over the last 30 days"><span>30D AVG DAILY VOLUME</span><span class="mono" id="v-avg-30d-vol">--</span></div>
-                <div class="d-row" title="Volume-weighted average price over the last 30 days"><span>30D VWAP</span><span class="mono" id="v-vwap-30d">--</span></div>
+            <div class="panel-tag">PAST MONTH STATS</div>
+            <div class="d-row" title="Mean daily volume over the last 7 days"><span>AVG 7D DAILY VOLUME</span><span class="mono" id="v-avg-7d-vol">--</span></div>
+            <div class="d-row" title="Mean daily volume over the last 30 days"><span>30D AVG DAILY VOLUME</span><span class="mono" id="v-avg-30d-vol">--</span></div>
+            <div class="d-row" title="Volume-weighted average price over the last 30 days"><span>30D VWAP</span><span class="mono" id="v-vwap-30d">--</span></div>
+        </div>
+
+        <div class="card stats-panel mr-panel">
+            <div class="panel-tag">
+                <span>MEAN REVERSION</span>
+                <button id="btn-calc-mr" class="btn-action">
+                    CALCULATE
+                </button>
             </div>
 
-        <div class="card stats-panel" style="margin-top: 15px;">
-    <div class="panel-tag" style="display: flex; justify-content: space-between; align-items: center;">
-        <span>MEAN REVERSION</span>
-        <button id="btn-calc-mr" onclick="calculateMeanReversion()" class="btn-action" style="padding: 2px 10px; font-size: 0.7rem;">
-            CALCULATE
-        </button>
-    </div>
-    
-    <div id="mr-results-container" style="display: none;">
-        <div class="d-row"><span id="v-mr-1d">--</span></div>
-        <div class="d-row"><span id="v-mr-4h">--</span></div>
-        <div class="d-row"><span id="v-mr-1h">--</span></div>
-    </div>
-</div>
-        <div class="grid explainer-grid" style="margin-top: 15px;">
+            <div id="mr-results-container" hidden>
+                <div class="d-row"><span id="v-mr-1d">--</span></div>
+                <div class="d-row"><span id="v-mr-4h">--</span></div>
+                <div class="d-row"><span id="v-mr-1h">--</span></div>
+            </div>
+        </div>
+        <div class="grid explainer-grid">
             <div class="card mini-stats explainer-box">
                 <p><strong>VTMR:</strong> Volume to Market Cap Ratio. Measures trading activity relative to token's current size (marketcap).</p>
             </div>

@@ -12,7 +12,7 @@
     {% if drive_linked %}
     <div id="reconnect-banner" style="display:none; margin-bottom:15px; padding:12px 16px; background:rgba(245,158,11,0.1); border:1px solid var(--accent-orange); border-radius:10px; color:var(--accent-orange); font-size:0.85rem; align-items:center; justify-content:space-between; gap:10px;">
         <span>Your Drive connection predates the new folder-based storage. Reconnect to move your journal into a visible <strong>My Drive/Trading Journal</strong> folder.</span>
-        <a href="{{ url_for('tasks.google_login') }}" style="color:#000; background:var(--accent-orange); padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:700; white-space:nowrap;">RECONNECT</a>
+        <a href="{{ url_for('journal.google_login') }}" style="color:#000; background:var(--accent-orange); padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:700; white-space:nowrap;">RECONNECT</a>
     </div>
     <div class="stats-header">
         <div class="stat-mini-card">
@@ -34,14 +34,8 @@
     </div>
 
     <div class="journal-card">
-        <div class="mode-switcher" id="mode-switcher">
-            <button class="m-btn active" id="btn-normal" onclick="setMode('normal')">NORMAL MODE</button>
-            <button class="m-btn" id="btn-meme" onclick="setMode('meme')">MEME MODE</button>
-        </div>
-
         <form id="journalForm">
             <input type="hidden" name="id" id="trade_id">
-            <input type="hidden" name="mode" id="current-mode" value="normal">
             <input type="hidden" name="rules_followed" id="rules_followed" value="true">
 
             <div class="form-grid">
@@ -50,7 +44,7 @@
                     <input type="date" name="trade_date" id="trade_date" required>
                 </div>
                 <div>
-                    <label id="lbl-ticker">Token ($Ticker)</label>
+                    <label>Coin Ticker</label>
                     <input type="text" name="ticker" id="ticker" placeholder="$SOL" required>
                 </div>
                 <div>
@@ -58,21 +52,16 @@
                     <input type="text" name="strategy" id="strategy" list="strategies" placeholder="Setup name...">
                     <datalist id="strategies">
                         <option value="Breakout">
-                        <option value="Fair Launch">
                         <option value="Support Retest">
                         <option value="Trend Continuation">
                     </datalist>
                 </div>
 
-                <div class="normal-only">
+                <div>
                     <label>MarketCap</label>
                     <input type="text" name="market_cap" id="market_cap" placeholder="e.g. 50B">
                 </div>
-                <div class="meme-only" style="display:none;">
-                    <label>Entry MC</label>
-                    <input type="text" name="entry_mcap" id="entry_mcap" placeholder="e.g. 500k">
-                </div>
-                <div class="normal-only">
+                <div>
                     <label>Entry Price ($)</label>
                     <input type="number" step="any" name="entry_price" id="entry_price" placeholder="0.00" oninput="calculateRRR()">
                 </div>
@@ -218,10 +207,10 @@
             <thead>
                 <tr>
                     <th onclick="sortData('trade_date')">DATE ↕</th>
-                    <th onclick="sortData('ticker')"><span id="th-token-label">TOKEN</span> ↕</th>
+                    <th onclick="sortData('ticker')">TOKEN ↕</th>
                     <th>STRATEGY</th>
-                    <th><span id="th-mc-label">MKT CAP</span></th>
-                    <th class="normal-only">PRICE</th>
+                    <th>MKT CAP</th>
+                    <th>PRICE</th>
                     <th>ENTRY TIME</th>
                     <th>SL</th>
                     <th>TP</th>
@@ -242,7 +231,7 @@
     <div style="text-align: center; padding: 50px; background: var(--bg-card); border: 1px dashed var(--accent-blue); border-radius: 16px;">
         <h2>Connect Google Drive</h2>
         <p style="color:var(--text-dim);">Secure your trading data in your private cloud.</p>
-        <a href="{{ url_for('tasks.google_login') }}" class="btn btn-blue" style="margin-top:10px; display:inline-block; padding:10px 20px; background:var(--accent-blue); color:white; border-radius:8px; text-decoration:none;">CONNECT NOW</a>
+        <a href="{{ url_for('journal.google_login') }}" class="btn btn-blue" style="margin-top:10px; display:inline-block; padding:10px 20px; background:var(--accent-blue); color:white; border-radius:8px; text-decoration:none;">CONNECT NOW</a>
     </div>
     {% endif %}
 </div>
@@ -263,7 +252,7 @@
         <div>
           <h3 style="margin:0; color:var(--accent-orange); font-size:0.95rem; font-weight:700; letter-spacing:0.5px;">AI AUDITOR</h3>
           <div style="font-size:0.75rem; color:var(--text-dim); display:flex; align-items:center; gap:6px;">
-            <span class="status-dot"></span> Gemini 3 Flash • Connected
+            <span class="status-dot"></span> Gemini 3.6 Flash • Connected
           </div>
         </div>
       </div>
@@ -319,12 +308,11 @@
     csrf: "{{ csrf_token() }}",
     driveLinked: {{ 'true' if drive_linked else 'false' }},
     hasAiKey: {{ 'true' if user_settings and user_settings.gemini_key else 'false' }},
-    journalModePref: "{{ journal_mode_pref|default('both', true) }}",
     urls: {
-      trades:      "{{ url_for('tasks.journal_get_trades') }}",
-      save:        "{{ url_for('tasks.save_journal_trade') }}",
-      uploadImage: "{{ url_for('tasks.upload_journal_image') }}",
-      deleteImage: "{{ url_for('tasks.delete_journal_image') }}",
+      trades:      "{{ url_for('journal.journal_get_trades') }}",
+      save:        "{{ url_for('journal.save_journal_trade') }}",
+      uploadImage: "{{ url_for('journal.upload_journal_image') }}",
+      deleteImage: "{{ url_for('journal.delete_journal_image') }}",
       marked:      "{{ url_for('static', filename='marked.min.js') }}",
       purify:      "{{ url_for('static', filename='purify.min.js') }}"
     }
